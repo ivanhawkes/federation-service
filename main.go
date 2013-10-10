@@ -10,12 +10,17 @@ import "bitbucket.org/shatteredscreens/federalservices/zone"
 
 func main() {
 	fmt.Println("main")
-	
-	character.Hello ()
+
+	character.Hello()
 	federation.Hello()
 	loot.Hello()
 	profile.Hello()
 	realm.Hello()
 	zone.Hello()
-}
 
+	//var p *Profile = new Profile()
+	p := new (profile.Profile)
+	p.SetFirstName ("Ivan")
+	fmt.Println(p.FirstName())
+	p.Create()
+}
