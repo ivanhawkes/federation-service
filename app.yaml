@@ -4,9 +4,33 @@ runtime: go
 api_version: go1
 
 handlers:
+# Static folders
+- url: /css
+  static_dir: static/css
+- url: /docs
+  static_dir: static/docs
+- url: /html
+  static_dir: static/html
+- url: /images
+  static_dir: static/images
+- url: /js
+  static_dir: static/js
+
+# Swagger HTML UI
+- url: /swagger
+  static_dir: static/swagger
+
+# Admin features
+- url: /admin/.*
+  script: _go_app
+  login: admin
+
+# Some admin thing I think?
+- url: /_ah/spi/.*
+  script: _go_app
+
+# Everything else
 - url: /.*
   script: _go_app
   login: required
 
-- url: /_ah/spi/.*
-  script: _go_app

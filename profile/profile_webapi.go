@@ -1,10 +1,10 @@
 package profile
 
 import (
-//	"appengine"
-//	"appengine/datastore"
-//	"appengine/user"
-//	"encoding/json"
+	//	"appengine"
+	//	"appengine/datastore"
+	//	"appengine/user"
+	//	"encoding/json"
 	"io"
 	"net/http"
 )
@@ -98,20 +98,17 @@ func handleProfiles(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-
 func handleGet(w http.ResponseWriter, r *http.Request) {
 	//c := appengine.NewContext(r)
-//	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	//	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-//	io.WriteString(w, r.URL.Path) // <- the URL path
+	//	io.WriteString(w, r.URL.Path) // <- the URL path
 
 	io.WriteString(w, r.URL.Path)
 	// Check if there is an Id
 	io.WriteString(w, r.FormValue("id"))
 	// NOTE!
 	// We need to pull the Id from the URL immediately after the /profiles/ part.
-
-
 
 	//io.WriteString(w, "get\n")
 	return
@@ -122,40 +119,40 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 	//c := appengine.NewContext(r)
 	//err := PostJson(c, r.url, )
 
-/*	if len(p.firstName) < 2 {
-		serveError(w, r, http.StatusBadRequest)
-		io.WriteString(w, "firstName is too short\n")
-		return
-	}
-	if len(p.nickName) < 5 {
-		serveError(w, r, http.StatusBadRequest)
-		io.WriteString(w, "nickName is too short\n")
-		return
-	}
-	if len(p.lastName) < 2 {
-		serveError(w, r, http.StatusBadRequest)
-		io.WriteString(w, "lastName is too short\n")
-		return
-	}*/
+	/*	if len(p.firstName) < 2 {
+			serveError(w, r, http.StatusBadRequest)
+			io.WriteString(w, "firstName is too short\n")
+			return
+		}
+		if len(p.nickName) < 5 {
+			serveError(w, r, http.StatusBadRequest)
+			io.WriteString(w, "nickName is too short\n")
+			return
+		}
+		if len(p.lastName) < 2 {
+			serveError(w, r, http.StatusBadRequest)
+			io.WriteString(w, "lastName is too short\n")
+			return
+		}*/
 
 	//p := NewProfile(fn, nn, ln, user.Current(c).String())
 
 	//k := datastore.NewIncompleteKey(c, "Profile", nil)
 	//if _, err := datastore.Put(c, k, p); err != nil {
-//		http.Error(w, err.Error(), 500)
-//		return
+	//		http.Error(w, err.Error(), 500)
+	//		return
 	//}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-//	b, err := json.Marshal(p)
-//	if err != nil {
-//		io.WriteString(w, "error man!")
-//	} else {
-//		io.WriteString(w, string(b))
-//	}
+	//	b, err := json.Marshal(p)
+	//	if err != nil {
+	//		io.WriteString(w, "error man!")
+	//	} else {
+	//		io.WriteString(w, string(b))
+	//	}
 
-io.WriteString(w, "what up?")
+	io.WriteString(w, "what up?")
 
 	return
 }
