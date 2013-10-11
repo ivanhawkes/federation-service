@@ -14,23 +14,22 @@ func profileKey(c appengine.Context) *datastore.Key {
 	return datastore.NewKey(c, "ShatteredScreens", "stringID", 0, nil)
 }
 
-
-func (p *Profile) Create() int {
-	fmt.Println("create")
+func (p *profile) Get() int {
+	fmt.Println("get")
 	return 1
 }
 
-func (p *Profile) Read() int {
-	fmt.Println("read")
+func (p *profile) Put() int {
+	fmt.Println("put")
 	return 1
 }
 
-func (p *Profile) Update() int {
-	fmt.Println("update")
+func (p *profile) Post() int {
+	fmt.Println("post")
 	return 1
 }
 
-func (p *Profile) Delete() int {
+func (p *profile) Delete() int {
 	fmt.Println("delete")
 	return 1
 }

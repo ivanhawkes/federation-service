@@ -1,31 +1,29 @@
 package profile
 
-import ( 
+import (
 	"time"
 )
 
-type Profile struct {
-	id        int // just to remind me it should have it somewhere
-	createDate time.Time
+type profile struct {
+	created   time.Time
 	firstName string
 	lastName  string
 	nickName  string
-	Account string
+	Account   string
 }
 
-func (p *Profile) FirstName() string {
+func NewProfile(FirstName, NickName, LastName, Account string) *profile {
+	return &profile{time.Now(), FirstName, NickName, LastName, Account}
+}
+
+func (p *profile) FirstName() string {
 	return p.firstName
 }
 
-func (p *Profile) SetFirstName(name string) string {
-	p.firstName = name
-	return name
-}
-
-func (p *Profile) LastName() string {
+func (p *profile) LastName() string {
 	return p.lastName
 }
 
-func (p *Profile) NickName() string {
+func (p *profile) NickName() string {
 	return p.nickName
 }

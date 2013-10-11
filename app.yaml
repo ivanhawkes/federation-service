@@ -7,3 +7,6 @@ handlers:
 - url: /.*
   script: _go_app
   login: required
+
+- url: /_ah/spi/.*
+  script: _go_app
