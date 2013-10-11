@@ -1,20 +1,24 @@
 package main
 
 import (
-	"bitbucket.org/shatteredscreens/federalservices/character"
-	"bitbucket.org/shatteredscreens/federalservices/federation"
-	"bitbucket.org/shatteredscreens/federalservices/loot"
+	//"bitbucket.org/shatteredscreens/federalservices/character"
+	//"bitbucket.org/shatteredscreens/federalservices/federation"
+	//"bitbucket.org/shatteredscreens/federalservices/loot"
 	"bitbucket.org/shatteredscreens/federalservices/profile"
-	"bitbucket.org/shatteredscreens/federalservices/realm"
-	"bitbucket.org/shatteredscreens/federalservices/zone"
+	//"bitbucket.org/shatteredscreens/federalservices/realm"
+	//"bitbucket.org/shatteredscreens/federalservices/zone"
 	"fmt"
-	"html/template"
+	//"html/template"
 	"net/http"
 )
 
 func init() {
 	http.HandleFunc("/", handleMainPage)
-	http.HandleFunc("/profile", handlePut)
+	//http.HandleFunc("/profile", HandleProfile)
+}
+
+func handleMainPage(w http.ResponseWriter, r *http.Request) {
+    fmt.Fprint(w, "Hello, world!")
 }
 
 func main() {

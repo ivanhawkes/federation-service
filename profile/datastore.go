@@ -3,9 +3,9 @@ package profile
 import (
 	"appengine"
 	"appengine/datastore"
-	"appengine/user"
+	//"appengine/user"
 	"fmt"
-	"time"
+	//"time"
 )
 
 // guestbookKey returns the key used for all guestbook entries.

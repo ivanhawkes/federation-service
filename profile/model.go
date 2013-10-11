@@ -1,16 +1,16 @@
 package profile
 
 import ( 
-	"fmt"
 	"time"
 )
 
 type Profile struct {
 	id        int // just to remind me it should have it somewhere
-	Date time.Time
+	createDate time.Time
 	firstName string
 	lastName  string
 	nickName  string
+	Account string
 }
 
 func (p *Profile) FirstName() string {
