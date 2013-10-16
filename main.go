@@ -44,7 +44,8 @@ func (u ProfileWebApi) register() {
 		// docs
 		Doc("create a profile").
 		Param(ws.BodyParameter("Profile", "representation of a profile").DataType("main.Profile")).
-		Reads(Profile{})) // from the request
+//		Reads(Profile{})) // from the request
+		Reads(datastore.Key{})) // from the request
 
 	ws.Route(ws.GET("/{profile-id}").To(u.read).
 		// docs
@@ -83,24 +84,13 @@ func (u *ProfileWebApi) create(r *restful.Request, w *restful.Response) {
 		// Tag the modified datetime.
 		p.LastModified = time.Now()
 
-		//key, err := datastore.Put(c, datastore.NewIncompleteKey(c, "profiles", nil), &p)
 		key, err := datastore.Put(c, datastore.NewIncompleteKey(c, "profiles", nil), p)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		var p Profile
-		if err = datastore.Get(c, key, &p); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.WriteEntity(key)
-		return
-
-		// The data was stored, now we should return a key to retrieve it.
-		// HACK: need real key
-		//profile := Profile{}
+		// Return value is the Id we stored the data under.
 		w.WriteEntity(key)
 	} else {
 		w.WriteError(http.StatusNotAcceptable, err)
