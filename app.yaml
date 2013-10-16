@@ -16,9 +16,13 @@ handlers:
 - url: /js
   static_dir: static/js
 
-# Swagger HTML UI
-- url: /swagger
-  static_dir: static/swagger
+# Regex for all swagger files to make as static content.
+# You should create the folder static/swagger and copy
+# swagger-ui into it.
+#
+- url: /apidocs/(.*?)/(.*\.(js|html|css))
+  static_files: static/swagger/\1/\2
+  upload: static/swagger/(.*?)/(.*\.(js|html|css))
 
 # Admin features
 - url: /admin/.*
