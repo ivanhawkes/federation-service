@@ -2,150 +2,170 @@ package main
 
 import (
 	"appengine"
-	"appengine/memcache"
+	"appengine/datastore"
+//	"appengine/memcache"
 	"github.com/emicklei/go-restful"
 	"net/http"
+	  "time"
+//	"appengine/profile"
 )
 
-// This example is functionally the same as ../restful-user-service.go
+// This example is functionally the same as ../restful-profile-service.go
 // but it`s supposed to run on Goole App Engine (GAE)
 
 // Our simple example struct.
-type User struct {
-	Id, Name string
+type Profile struct {
+	LastModified  time.Time     `json:"last_modified"`
+	//ApplicationId datastore.Key `json:"application_id"`
+	//AccountId     datastore.Key `json:"account_id"`
+	FirstName     string        `json:"first_name"`
+	NickName      string        `json:"nick_name"`
+	LastName      string        `json:"last_name"`
+	// We might need an int to append to nickname to make it unique like in GW2 e.g. socks.451
 }
 
-type UserWebApi struct {
+type ProfileWebApi struct {
 }
 
 func init() {
-	u := UserWebApi{}
+	u := ProfileWebApi{}
 	u.register()
 }
 
-func (u UserWebApi) register() {
+func (u ProfileWebApi) register() {
 	ws := new(restful.WebService)
 
 	ws.
-		Path("/users").
+		Path("/profiles").
 		Consumes(restful.MIME_XML, restful.MIME_JSON).
 		Produces(restful.MIME_JSON, restful.MIME_XML) // you can specify this per route as well
 
-	ws.Route(ws.GET("").To(u.readAll).
+	ws.Route(ws.POST("").To(u.create).
 		// docs
-		Doc("get all users").
-		//Param(ws.PathParameter("user-id", "identifier of the user").DataType("string")).
-		Writes(User{})) // on the response
+		Doc("create a profile").
+		Param(ws.BodyParameter("Profile", "representation of a profile").DataType("main.Profile")).
+		Reads(Profile{})) // from the request
 
-	ws.Route(ws.GET("/{user-id}").To(u.read).
+	ws.Route(ws.GET("/{profile-id}").To(u.read).
 		// docs
-		Doc("get a user").
-		Param(ws.PathParameter("user-id", "identifier of the user").DataType("string")).
-		Writes(User{})) // on the response
+		Doc("get a profile").
+		Param(ws.PathParameter("profile-id", "identifier of the profile").DataType("string")).
+		Writes(Profile{})) // on the response
 
-	ws.Route(ws.POST("").To(u.update).
+//	ws.Route(ws.GET("").To(u.readAll).
 		// docs
-		Doc("create a user").
-		Param(ws.BodyParameter("User", "representation of a user").DataType("main.User")).
-		Reads(User{})) // from the request
+//		Doc("get all profiles").
+//		Writes(Profile{})) // on the response
 
-	ws.Route(ws.PUT("/{user-id}").To(u.create).
+	ws.Route(ws.PUT("/{profile-id}").To(u.update).
 		// docs
-		Doc("update a user").
-		Param(ws.PathParameter("user-id", "identifier of the user").DataType("string")).
-		Param(ws.BodyParameter("User", "representation of a user").DataType("main.User")).
-		Reads(User{})) // from the request
+		Doc("update a profile").
+		Param(ws.PathParameter("profile-id", "identifier of the profile").DataType("string")).
+		Param(ws.BodyParameter("Profile", "representation of a profile").DataType("main.Profile")).
+		Reads(Profile{})) // from the request
 
-	ws.Route(ws.DELETE("/{user-id}").To(u.delete).
+	ws.Route(ws.DELETE("/{profile-id}").To(u.delete).
 		// docs
-		Doc("delete a user").
-		Param(ws.PathParameter("user-id", "identifier of the user").DataType("string")))
+		Doc("delete a profile").
+		Param(ws.PathParameter("profile-id", "identifier of the profile").DataType("string")))
 
 	restful.Add(ws)
 }
 
-// GET http://localhost:8080/users
+// POST http://localhost:8080/profiles
+// { "Id" : "mel", "Name" : "Melissa"}
+//
+func (u *ProfileWebApi) create(r *restful.Request, w *restful.Response) {
+	c := appengine.NewContext(r.Request)
+	p := new(Profile)
+	err := r.ReadEntity(&p)
+	if err == nil {
+		// Tag the modified datetime.
+		p.LastModified = time.Now()
+
+		//key, err := datastore.Put(c, datastore.NewIncompleteKey(c, "profiles", nil), &p)
+		key, err := datastore.Put(c, datastore.NewIncompleteKey(c, "profiles", nil), p)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var p Profile
+		if err = datastore.Get(c, key, &p); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.WriteEntity(key)
+		return
+
+		// The data was stored, now we should return a key to retrieve it.
+		// HACK: need real key
+		//profile := Profile{}
+		w.WriteEntity(key)
+	} else {
+		w.WriteError(http.StatusNotAcceptable, err)
+	}
+}
+
+// GET http://localhost:8080/profiles
 // TODO: broken until I switch from memcache over to datastore
-func (u UserWebApi) readAll(request *restful.Request, response *restful.Response) {
-	c := appengine.NewContext(request.Request)
-	id := request.PathParameter("user-id")
-	usr := new(User)
-	_, err := memcache.Gob.Get(c, id, &usr)
-	if err != nil || len(usr.Id) == 0 {
-		response.WriteErrorString(http.StatusNotFound, "User could not be found.")
-	} else {
-		response.WriteEntity(usr)
-	}
+func (u ProfileWebApi) readAll(r *restful.Request, w *restful.Response) {
+//	c := appengine.NewContext(r.Request)
+//	id := r.PathParameter("profile-id")
+//	prof := new(Profile)
+//	_, err := memcache.Gob.Get(c, id, &prof)
+//	if err != nil || len(prof.Id) == 0 {
+//		w.WriteErrorString(http.StatusNotFound, "Profile could not be found.")
+//	} else {
+//		w.WriteEntity(prof)
+//	}
 }
 
-// GET http://localhost:8080/users/1
+// GET http://localhost:8080/profiles/1
 //
-func (u UserWebApi) read(request *restful.Request, response *restful.Response) {
-	c := appengine.NewContext(request.Request)
-	id := request.PathParameter("user-id")
-	usr := new(User)
-	_, err := memcache.Gob.Get(c, id, &usr)
-	if err != nil || len(usr.Id) == 0 {
-		response.WriteErrorString(http.StatusNotFound, "User could not be found.")
-	} else {
-		response.WriteEntity(usr)
-	}
+func (u ProfileWebApi) read(r *restful.Request, w *restful.Response) {
+//	c := appengine.NewContext(r.Request)
+//	id := r.PathParameter("profile-id")
+//	prof := new(Profile)
+//	_, err := memcache.Gob.Get(c, id, &prof)
+//	if err != nil || len(prof.Id) == 0 {
+//		w.WriteErrorString(http.StatusNotFound, "Profile could not be found.")
+//	} else {
+//		w.WriteEntity(prof)
+//	}
 }
 
-// PUT http://localhost:8080/users/1
-// <User><Id>1</Id><Name>Melissa Raspberry</Name></User>
+// PUT http://localhost:8080/profiles/1
+// <Profile><Id>1</Id><Name>Melissa Raspberry</Name></Profile>
 //
-func (u *UserWebApi) update(request *restful.Request, response *restful.Response) {
-	c := appengine.NewContext(request.Request)
-	usr := new(User)
-	err := request.ReadEntity(&usr)
-	if err == nil {
-		item := &memcache.Item{
-			Key:    usr.Id,
-			Object: &usr,
-		}
-		err = memcache.Gob.Set(c, item)
-		if err != nil {
-			response.WriteError(http.StatusInternalServerError, err)
-			return
-		}
-		response.WriteEntity(usr)
-	} else {
-		response.WriteError(http.StatusInternalServerError, err)
-	}
+func (u *ProfileWebApi) update(r *restful.Request, w *restful.Response) {
+//	c := appengine.NewContext(r.Request)
+//	prof := Profile{Id: r.PathParameter("profile-id")}
+//	err := r.ReadEntity(&prof)
+//	if err == nil {
+//		item := &memcache.Item{
+//			Key:    prof.Id,
+//			Object: &prof,
+//		}
+//		err = memcache.Gob.Add(c, item)
+//		if err != nil {
+//			w.WriteError(http.StatusInternalServerError, err)
+//			return
+//		}
+//		w.WriteHeader(http.StatusCreated)
+//		w.WriteEntity(prof)
+//	} else {
+//		w.WriteError(http.StatusInternalServerError, err)
+//	}
 }
 
-// POST http://localhost:8080/users
-// <User><Id>1</Id><Name>Melissa</Name></User>
+// DELETE http://localhost:8080/profiles/1
 //
-func (u *UserWebApi) create(request *restful.Request, response *restful.Response) {
-	c := appengine.NewContext(request.Request)
-	usr := User{Id: request.PathParameter("user-id")}
-	err := request.ReadEntity(&usr)
-	if err == nil {
-		item := &memcache.Item{
-			Key:    usr.Id,
-			Object: &usr,
-		}
-		err = memcache.Gob.Add(c, item)
-		if err != nil {
-			response.WriteError(http.StatusInternalServerError, err)
-			return
-		}
-		response.WriteHeader(http.StatusCreated)
-		response.WriteEntity(usr)
-	} else {
-		response.WriteError(http.StatusInternalServerError, err)
-	}
-}
-
-// DELETE http://localhost:8080/users/1
-//
-func (u *UserWebApi) delete(request *restful.Request, response *restful.Response) {
-	c := appengine.NewContext(request.Request)
-	id := request.PathParameter("user-id")
-	err := memcache.Delete(c, id)
-	if err != nil {
-		response.WriteError(http.StatusInternalServerError, err)
-	}
+func (u *ProfileWebApi) delete(r *restful.Request, w *restful.Response) {
+//	c := appengine.NewContext(r.Request)
+//	id := r.PathParameter("profile-id")
+//	err := memcache.Delete(c, id)
+//	if err != nil {
+//		w.WriteError(http.StatusInternalServerError, err)
+//	}
 }
