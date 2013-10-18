@@ -45,17 +45,16 @@ func (u ProfileApi) register() {
 		Param(ws.BodyParameter("Profile", "representation of a profile").DataType("main.Profile")).
 		Reads(Profile{}))
 
-		ws.Route(ws.GET("/{profile-id}").To(u.read).
+	ws.Route(ws.GET("/{profile-id}").To(u.read).
 		// Swagger documentation.
 		Doc("read a profile").
 		Param(ws.PathParameter("profile-id", "identifier for a profile").DataType("string")).
 		Writes(Profile{}))
 
-/*	ws.Route(ws.GET("").To(u.readAll).
+	ws.Route(ws.GET("/all").To(u.readAll).
 		// Swagger documentation.
 		Doc("return a list of all the profiles").
-		Param(ws.PathParameter("garbage", "ignore").DataType("string")).
-		Writes(Profile{}))*/
+		Writes(Profile{}))
 
 	ws.Route(ws.PUT("/{profile-id}").To(u.update).
 		// Swagger documentation.
@@ -99,7 +98,7 @@ func (u *ProfileApi) insert(r *restful.Request, w *restful.Response) {
 	}
 
 	// Let them know the location of the newly created resource.
-	// TODO: we should be able to derive the location from the routing.
+	// TODO: Use a safe Url path append function.
 	w.AddHeader("Location", u.Path+"/"+k.Encode())
 
 	// Return the resultant entity.
@@ -131,6 +130,8 @@ func (u ProfileApi) read(r *restful.Request, w *restful.Response) {
 	}
 
 	// Check we own the profile before allowing them to view it.
+	// Optionally, return a 404 instead to help prevent guessing ids.
+	// TODO: Allow admins access.
 	if p.Email != user.Current(c).String() {
 		http.Error(w, "You do not have access to this resource", http.StatusForbidden)
 		return
@@ -140,7 +141,7 @@ func (u ProfileApi) read(r *restful.Request, w *restful.Response) {
 }
 
 // GET http://localhost:8080/profiles
-// FXIME: Broken, due I think to a collision on the GET verb.
+//
 func (u ProfileApi) readAll(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
@@ -159,7 +160,7 @@ func (u ProfileApi) readAll(r *restful.Request, w *restful.Response) {
 }
 
 // PUT http://localhost:8080/profiles/ahdkZXZ-ZmVkZXJhdGlvbi1zZXJ2aWNlc3IVCxIIcHJvZmlsZXMYgICAgICAgAoM
-// <Profile><Id>1</Id><Name>Melissa Raspberry</Name></Profile>
+// {"first_name": "Ivan", "nick_name": "Socks", "last_name": "Hawkes"}
 //
 func (u *ProfileApi) update(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
@@ -191,6 +192,8 @@ func (u *ProfileApi) update(r *restful.Request, w *restful.Response) {
 	}
 
 	// Check we own the profile before allowing them to update it.
+	// Optionally, return a 404 instead to help prevent guessing ids.
+	// TODO: Allow admins access.
 	if old.Email != user.Current(c).String() {
 		http.Error(w, "You do not have access to this resource", http.StatusForbidden)
 		return
@@ -238,6 +241,8 @@ func (u *ProfileApi) remove(r *restful.Request, w *restful.Response) {
 	}
 
 	// Check we own the profile before allowing them to delete it.
+	// Optionally, return a 404 instead to help prevent guessing ids.
+	// TODO: Allow admins access.
 	if old.Email != user.Current(c).String() {
 		http.Error(w, "You do not have access to this resource", http.StatusForbidden)
 		return
