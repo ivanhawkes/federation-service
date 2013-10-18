@@ -3,16 +3,16 @@ package main
 import (
 	"appengine"
 	"appengine/datastore"
-	//	"appengine/memcache"
 	"github.com/emicklei/go-restful"
 	"net/http"
 	"time"
 
-//	"appengine/profile"
+//	"appengine/user"
+//	"fmt"
 )
 
-// This example is functionally the same as ../restful-profile-service.go
-// but it`s supposed to run on Goole App Engine (GAE)
+// This example demonstrates a reasonably complete suite of RESTful operations backed
+// by DataStore on Google App Engine.
 
 // Our simple example struct.
 type Profile struct {
@@ -25,15 +25,15 @@ type Profile struct {
 	// We might need an int to append to nickname to make it unique like in GW2 e.g. socks.451
 }
 
-type ProfileWebApi struct {
+type ProfileApi struct {
 }
 
 func init() {
-	u := ProfileWebApi{}
+	u := ProfileApi{}
 	u.register()
 }
 
-func (u ProfileWebApi) register() {
+func (u ProfileApi) register() {
 	ws := new(restful.WebService)
 
 	ws.
@@ -41,34 +41,34 @@ func (u ProfileWebApi) register() {
 		Consumes(restful.MIME_XML, restful.MIME_JSON).
 		Produces(restful.MIME_JSON, restful.MIME_XML) // you can specify this per route as well
 
-	ws.Route(ws.POST("").To(u.create).
+	ws.Route(ws.POST("").To(u.insert).
 		// docs
-		Doc("create a profile").
+		Doc("insert a new profile").
 		Param(ws.BodyParameter("Profile", "representation of a profile").DataType("main.Profile")).
 		//		Reads(Profile{})) // from the request
 		Reads(datastore.Key{})) // from the request
 
 	ws.Route(ws.GET("/{profile-id}").To(u.read).
 		// docs
-		Doc("get a profile").
+		Doc("read a profile").
 		Param(ws.PathParameter("profile-id", "identifier of the profile").DataType("string")).
 		Writes(Profile{})) // on the response
 
 	//	ws.Route(ws.GET("").To(u.readAll).
 	// docs
-	//		Doc("get all profiles").
+	//		Doc("read all profiles").
 	//		Writes(Profile{})) // on the response
 
 	ws.Route(ws.PUT("/{profile-id}").To(u.update).
 		// docs
-		Doc("update a profile").
+		Doc("update an existing profile").
 		Param(ws.PathParameter("profile-id", "identifier of the profile").DataType("string")).
 		Param(ws.BodyParameter("Profile", "representation of a profile").DataType("main.Profile")).
 		Reads(Profile{})) // from the request
 
-	ws.Route(ws.DELETE("/{profile-id}").To(u.delete).
+	ws.Route(ws.DELETE("/{profile-id}").To(u.remove).
 		// docs
-		Doc("delete a profile").
+		Doc("remove a profile").
 		Param(ws.PathParameter("profile-id", "identifier of the profile").DataType("string")))
 
 	restful.Add(ws)
@@ -77,12 +77,12 @@ func (u ProfileWebApi) register() {
 // POST http://localhost:8080/profiles
 // {"first_name": "Ivan", "nick_name": "Socks", "last_name": "Hawkes"}
 //
-func (u *ProfileWebApi) create(r *restful.Request, w *restful.Response) {
+func (u *ProfileApi) insert(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 	p := new(Profile)
 	err := r.ReadEntity(&p)
 	if err == nil {
-		// Tag the modified datetime.
+		// Ensure we start with a sensible value for this field.
 		p.LastModified = time.Now()
 
 		k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "profiles", nil), p)
@@ -92,46 +92,38 @@ func (u *ProfileWebApi) create(r *restful.Request, w *restful.Response) {
 		}
 
 		// Return value is the Id we stored the data under.
-		w.WriteEntity(k)
+		w.WriteEntity(k.Encode())
 	} else {
 		w.WriteError(http.StatusNotAcceptable, err)
 	}
 }
 
-// GET http://localhost:8080/profiles
-// TODO: broken until I switch from memcache over to datastore
-func (u ProfileWebApi) readAll(r *restful.Request, w *restful.Response) {
-	//	c := appengine.NewContext(r.Request)
-	//	id := r.PathParameter("profile-id")
-	//	prof := new(Profile)
-	//	_, err := memcache.Gob.Get(c, id, &prof)
-	//	if err != nil || len(prof.Id) == 0 {
-	//		w.WriteErrorString(http.StatusNotFound, "Profile could not be found.")
-	//	} else {
-	//		w.WriteEntity(prof)
-	//	}
-}
-
-// GET http://localhost:8080/profiles/ahdkZXZ-ZmVkZXJhdGlvbi1zZXJ2aWNlc3IVCxIIcHJvZmlsZXMYgICAgICAiAsM
+// GET http://localhost:8080/profiles/ahdkZXZ-ZmVkZXJhdGlvbi1zZXJ2aWNlc3IVCxIIcHJvZmlsZXMYgICAgICAgAoM
 //
-func (u ProfileWebApi) read(r *restful.Request, w *restful.Response) {
+func (u ProfileApi) read(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 	id := r.PathParameter("profile-id")
-	k := datastore.NewKey(c, "profiles", id, 0, nil)
-	//w.WriteEntity(k.StringID())
-	//w.WriteEntity(id)
-//	return
 
-	p := new(Profile)
+	k, err := datastore.DecodeKey(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	p := Profile{}
 	if err := datastore.Get(c, k, &p); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteEntity("buut")
-	return
-	//		w.WriteEntity(id)
+	w.WriteEntity(p)
+}
 
+// GET http://localhost:8080/profiles
+// TODO: broken until I switch from memcache over to datastore
+func (u ProfileApi) readAll(r *restful.Request, w *restful.Response) {
+	//	c := appengine.NewContext(r.Request)
+	//	id := r.PathParameter("profile-id")
 	//	prof := new(Profile)
 	//	_, err := memcache.Gob.Get(c, id, &prof)
 	//	if err != nil || len(prof.Id) == 0 {
@@ -144,7 +136,7 @@ func (u ProfileWebApi) read(r *restful.Request, w *restful.Response) {
 // PUT http://localhost:8080/profiles/1
 // <Profile><Id>1</Id><Name>Melissa Raspberry</Name></Profile>
 //
-func (u *ProfileWebApi) update(r *restful.Request, w *restful.Response) {
+func (u *ProfileApi) update(r *restful.Request, w *restful.Response) {
 	//	c := appengine.NewContext(r.Request)
 	//	prof := Profile{Id: r.PathParameter("profile-id")}
 	//	err := r.ReadEntity(&prof)
@@ -167,7 +159,7 @@ func (u *ProfileWebApi) update(r *restful.Request, w *restful.Response) {
 
 // DELETE http://localhost:8080/profiles/1
 //
-func (u *ProfileWebApi) delete(r *restful.Request, w *restful.Response) {
+func (u *ProfileApi) remove(r *restful.Request, w *restful.Response) {
 	//	c := appengine.NewContext(r.Request)
 	//	id := r.PathParameter("profile-id")
 	//	err := memcache.Delete(c, id)
