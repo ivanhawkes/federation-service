@@ -3,12 +3,10 @@ package main
 import (
 	"appengine"
 	"appengine/datastore"
+	"appengine/user"
 	"github.com/emicklei/go-restful"
 	"net/http"
 	"time"
-
-//	"appengine/user"
-//	"fmt"
 )
 
 // This example demonstrates a reasonably complete suite of RESTful operations backed
@@ -16,20 +14,19 @@ import (
 
 // Our simple example struct.
 type Profile struct {
-	LastModified time.Time `json:"last_modified"`
-	//ApplicationId datastore.Key `json:"application_id"`
-	//AccountId     datastore.Key `json:"account_id"`
-	FirstName string `json:"first_name"`
-	NickName  string `json:"nick_name"`
-	LastName  string `json:"last_name"`
-	// We might need an int to append to nickname to make it unique like in GW2 e.g. socks.451
+	LastModified time.Time `json:"-" xml:"-"`
+	Email        string    `json:"-" xml:"-"`
+	FirstName    string    `json:"first_name" xml:"first-name"`
+	NickName     string    `json:"nick_name" xml:"nick-name"`
+	LastName     string    `json:"last_name" xml:"last-name"`
 }
 
 type ProfileApi struct {
+	Path string
 }
 
 func init() {
-	u := ProfileApi{}
+	u := ProfileApi{Path: "/profiles"}
 	u.register()
 }
 
@@ -37,38 +34,40 @@ func (u ProfileApi) register() {
 	ws := new(restful.WebService)
 
 	ws.
-		Path("/profiles").
-		Consumes(restful.MIME_XML, restful.MIME_JSON).
-		Produces(restful.MIME_JSON, restful.MIME_XML) // you can specify this per route as well
+		Path(u.Path).
+		// You can specify consumes and produces per route as well.
+		Consumes(restful.MIME_JSON, restful.MIME_XML).
+		Produces(restful.MIME_JSON, restful.MIME_XML)
 
 	ws.Route(ws.POST("").To(u.insert).
-		// docs
+		// Swagger documentation.
 		Doc("insert a new profile").
 		Param(ws.BodyParameter("Profile", "representation of a profile").DataType("main.Profile")).
-		Reads(Profile{})) // from the request
+		Reads(Profile{}))
 
-	ws.Route(ws.GET("/{profile-id}").To(u.read).
-		// docs
+	/*	ws.Route(ws.GET("/{profile-id}").To(u.read).
+		// Swagger documentation.
 		Doc("read a profile").
-		Param(ws.PathParameter("profile-id", "identifier of the profile").DataType("string")).
-		Writes(Profile{})) // on the response
+		Param(ws.PathParameter("profile-id", "identifier for a profile").DataType("string")).
+		Writes(Profile{}))*/
 
-	//	ws.Route(ws.GET("").To(u.readAll).
-	// docs
-	//		Doc("read all profiles").
-	//		Writes(Profile{})) // on the response
+	ws.Route(ws.GET("").To(u.readAll).
+		// Swagger documentation.
+		Doc("return a list of all the profiles").
+		Param(ws.PathParameter("garbage", "ignore").DataType("string")).
+		Writes(Profile{}))
 
 	ws.Route(ws.PUT("/{profile-id}").To(u.update).
-		// docs
+		// Swagger documentation.
 		Doc("update an existing profile").
-		Param(ws.PathParameter("profile-id", "identifier of the profile").DataType("string")).
+		Param(ws.PathParameter("profile-id", "identifier for a profile").DataType("string")).
 		Param(ws.BodyParameter("Profile", "representation of a profile").DataType("main.Profile")).
-		Reads(Profile{})) // from the request
+		Reads(Profile{}))
 
 	ws.Route(ws.DELETE("/{profile-id}").To(u.remove).
-		// docs
+		// Swagger documentation.
 		Doc("remove a profile").
-		Param(ws.PathParameter("profile-id", "identifier of the profile").DataType("string")))
+		Param(ws.PathParameter("profile-id", "identifier for a profile").DataType("string")))
 
 	restful.Add(ws)
 }
@@ -90,14 +89,22 @@ func (u *ProfileApi) insert(r *restful.Request, w *restful.Response) {
 	// Ensure we start with a sensible value for this field.
 	p.LastModified = time.Now()
 
+	// The profile belongs to this user.
+	p.Email = user.Current(c).String()
+
 	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "profiles", nil), p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Return value is the Id we stored the data under.
-	w.WriteEntity(k.Encode())
+	// Let them know the location of the newly created resource.
+	// TODO: we should be able to derive the location from the routing.
+	w.AddHeader("Location", u.Path+"/"+k.Encode())
+
+	// Return the resultant entity.
+	w.WriteHeader(http.StatusCreated)
+	w.WriteEntity(p)
 }
 
 // GET http://localhost:8080/profiles/ahdkZXZ-ZmVkZXJhdGlvbi1zZXJ2aWNlc3IVCxIIcHJvZmlsZXMYgICAgICAgAoM
@@ -115,7 +122,17 @@ func (u ProfileApi) read(r *restful.Request, w *restful.Response) {
 	// Retrieve the entity from the datastore.
 	p := Profile{}
 	if err := datastore.Get(c, k, &p); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		if err.Error() == "datastore: no such entity" {
+			http.Error(w, err.Error(), http.StatusNotFound)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Check we own the profile before allowing them to view it.
+	if p.Email != user.Current(c).String() {
+		http.Error(w, "You do not have access to this resource", http.StatusForbidden)
 		return
 	}
 
@@ -123,17 +140,22 @@ func (u ProfileApi) read(r *restful.Request, w *restful.Response) {
 }
 
 // GET http://localhost:8080/profiles
-// TODO: broken until I switch from memcache over to datastore
+// FXIME: Broken, due I think to a collision on the GET verb.
 func (u ProfileApi) readAll(r *restful.Request, w *restful.Response) {
-	//	c := appengine.NewContext(r.Request)
-	//	id := r.PathParameter("profile-id")
-	//	prof := new(Profile)
-	//	_, err := memcache.Gob.Get(c, id, &prof)
-	//	if err != nil || len(prof.Id) == 0 {
-	//		w.WriteErrorString(http.StatusNotFound, "Profile could not be found.")
-	//	} else {
-	//		w.WriteEntity(prof)
-	//	}
+	c := appengine.NewContext(r.Request)
+
+	// Find a list of all the profiles for the current user.
+	q := datastore.NewQuery("profiles").Filter("Email =", user.Current(c).String())
+
+	//
+	var profiles []Profile
+	if _, err := q.GetAll(c, &profiles); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Return the results.
+	w.WriteEntity(profiles)
 }
 
 // PUT http://localhost:8080/profiles/ahdkZXZ-ZmVkZXJhdGlvbi1zZXJ2aWNlc3IVCxIIcHJvZmlsZXMYgICAgICAgAoM
@@ -157,7 +179,28 @@ func (u *ProfileApi) update(r *restful.Request, w *restful.Response) {
 		return
 	}
 
-	// Make a note of the last time this entity was modified.
+	// Retrieve the old entity from the datastore.
+	old := Profile{}
+	if err := datastore.Get(c, k, &old); err != nil {
+		if err.Error() == "datastore: no such entity" {
+			http.Error(w, err.Error(), http.StatusNotFound)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Check we own the profile before allowing them to update it.
+	if old.Email != user.Current(c).String() {
+		http.Error(w, "You do not have access to this resource", http.StatusForbidden)
+		return
+	}
+
+	// Since the whole entity is re-written, we need to assign any invariant fields again
+	// e.g. the owner of the entity.
+	p.Email = user.Current(c).String()
+
+	// Keep track of the last modification date.
 	p.LastModified = time.Now()
 
 	// Attempt to overwrite the old entity.
@@ -167,8 +210,8 @@ func (u *ProfileApi) update(r *restful.Request, w *restful.Response) {
 		return
 	}
 
-	// Return value is...???
-	w.WriteEntity(p)
+	// Let them know it succeeded.
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // DELETE http://localhost:8080/profiles/ahdkZXZ-ZmVkZXJhdGlvbi1zZXJ2aWNlc3IVCxIIcHJvZmlsZXMYgICAgICAgAoM
@@ -183,7 +226,28 @@ func (u *ProfileApi) remove(r *restful.Request, w *restful.Response) {
 		return
 	}
 
+	// Retrieve the old entity from the datastore.
+	old := Profile{}
+	if err := datastore.Get(c, k, &old); err != nil {
+		if err.Error() == "datastore: no such entity" {
+			http.Error(w, err.Error(), http.StatusNotFound)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Check we own the profile before allowing them to delete it.
+	if old.Email != user.Current(c).String() {
+		http.Error(w, "You do not have access to this resource", http.StatusForbidden)
+		return
+	}
+
+	// Delete the entity.
 	if err := datastore.Delete(c, k); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+
+	// Success notification.
+	w.WriteHeader(http.StatusNoContent)
 }
