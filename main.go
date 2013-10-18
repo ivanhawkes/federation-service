@@ -45,8 +45,7 @@ func (u ProfileApi) register() {
 		// docs
 		Doc("insert a new profile").
 		Param(ws.BodyParameter("Profile", "representation of a profile").DataType("main.Profile")).
-		//		Reads(Profile{})) // from the request
-		Reads(datastore.Key{})) // from the request
+		Reads(Profile{})) // from the request
 
 	ws.Route(ws.GET("/{profile-id}").To(u.read).
 		// docs
@@ -79,37 +78,41 @@ func (u ProfileApi) register() {
 //
 func (u *ProfileApi) insert(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
+
+	// Marshall the entity from the request into a struct.
 	p := new(Profile)
 	err := r.ReadEntity(&p)
-	if err == nil {
-		// Ensure we start with a sensible value for this field.
-		p.LastModified = time.Now()
-
-		k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "profiles", nil), p)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		// Return value is the Id we stored the data under.
-		w.WriteEntity(k.Encode())
-	} else {
+	if err != nil {
 		w.WriteError(http.StatusNotAcceptable, err)
+		return
 	}
+
+	// Ensure we start with a sensible value for this field.
+	p.LastModified = time.Now()
+
+	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "profiles", nil), p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Return value is the Id we stored the data under.
+	w.WriteEntity(k.Encode())
 }
 
 // GET http://localhost:8080/profiles/ahdkZXZ-ZmVkZXJhdGlvbi1zZXJ2aWNlc3IVCxIIcHJvZmlsZXMYgICAgICAgAoM
 //
 func (u ProfileApi) read(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
-	id := r.PathParameter("profile-id")
-
-	k, err := datastore.DecodeKey(id)
+	
+	// Decode the request parameter to determine the key for the entity.
+	k, err := datastore.DecodeKey(r.PathParameter("profile-id"))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	// Retrieve the entity from the datastore.
 	p := Profile{}
 	if err := datastore.Get(c, k, &p); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -133,28 +136,39 @@ func (u ProfileApi) readAll(r *restful.Request, w *restful.Response) {
 	//	}
 }
 
-// PUT http://localhost:8080/profiles/1
+// PUT http://localhost:8080/profiles/ahdkZXZ-ZmVkZXJhdGlvbi1zZXJ2aWNlc3IVCxIIcHJvZmlsZXMYgICAgICAgAoM
 // <Profile><Id>1</Id><Name>Melissa Raspberry</Name></Profile>
 //
 func (u *ProfileApi) update(r *restful.Request, w *restful.Response) {
-	//	c := appengine.NewContext(r.Request)
-	//	prof := Profile{Id: r.PathParameter("profile-id")}
-	//	err := r.ReadEntity(&prof)
-	//	if err == nil {
-	//		item := &memcache.Item{
-	//			Key:    prof.Id,
-	//			Object: &prof,
-	//		}
-	//		err = memcache.Gob.Add(c, item)
-	//		if err != nil {
-	//			w.WriteError(http.StatusInternalServerError, err)
-	//			return
-	//		}
-	//		w.WriteHeader(http.StatusCreated)
-	//		w.WriteEntity(prof)
-	//	} else {
-	//		w.WriteError(http.StatusInternalServerError, err)
-	//	}
+	c := appengine.NewContext(r.Request)
+	
+	// Decode the request parameter to determine the key for the entity.
+	k, err := datastore.DecodeKey(r.PathParameter("profile-id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Marshall the entity from the request into a struct.
+	p := new(Profile)
+	err = r.ReadEntity(&p)
+	if err != nil {
+		w.WriteError(http.StatusNotAcceptable, err)
+		return
+	}
+
+	// Make a note of the last time this entity was modified.
+	p.LastModified = time.Now()
+
+	// Attempt to overwrite the old entity.
+	_, err = datastore.Put(c, k, p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Return value is...???
+	w.WriteEntity(p)
 }
 
 // DELETE http://localhost:8080/profiles/1
