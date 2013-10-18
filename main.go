@@ -104,7 +104,7 @@ func (u *ProfileApi) insert(r *restful.Request, w *restful.Response) {
 //
 func (u ProfileApi) read(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
-	
+
 	// Decode the request parameter to determine the key for the entity.
 	k, err := datastore.DecodeKey(r.PathParameter("profile-id"))
 	if err != nil {
@@ -141,7 +141,7 @@ func (u ProfileApi) readAll(r *restful.Request, w *restful.Response) {
 //
 func (u *ProfileApi) update(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
-	
+
 	// Decode the request parameter to determine the key for the entity.
 	k, err := datastore.DecodeKey(r.PathParameter("profile-id"))
 	if err != nil {
@@ -171,13 +171,19 @@ func (u *ProfileApi) update(r *restful.Request, w *restful.Response) {
 	w.WriteEntity(p)
 }
 
-// DELETE http://localhost:8080/profiles/1
+// DELETE http://localhost:8080/profiles/ahdkZXZ-ZmVkZXJhdGlvbi1zZXJ2aWNlc3IVCxIIcHJvZmlsZXMYgICAgICAgAoM
 //
 func (u *ProfileApi) remove(r *restful.Request, w *restful.Response) {
-	//	c := appengine.NewContext(r.Request)
-	//	id := r.PathParameter("profile-id")
-	//	err := memcache.Delete(c, id)
-	//	if err != nil {
-	//		w.WriteError(http.StatusInternalServerError, err)
-	//	}
+	c := appengine.NewContext(r.Request)
+
+	// Decode the request parameter to determine the key for the entity.
+	k, err := datastore.DecodeKey(r.PathParameter("profile-id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := datastore.Delete(c, k); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
