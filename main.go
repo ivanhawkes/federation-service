@@ -45,17 +45,17 @@ func (u ProfileApi) register() {
 		Param(ws.BodyParameter("Profile", "representation of a profile").DataType("main.Profile")).
 		Reads(Profile{}))
 
-	/*	ws.Route(ws.GET("/{profile-id}").To(u.read).
+		ws.Route(ws.GET("/{profile-id}").To(u.read).
 		// Swagger documentation.
 		Doc("read a profile").
 		Param(ws.PathParameter("profile-id", "identifier for a profile").DataType("string")).
-		Writes(Profile{}))*/
+		Writes(Profile{}))
 
-	ws.Route(ws.GET("").To(u.readAll).
+/*	ws.Route(ws.GET("").To(u.readAll).
 		// Swagger documentation.
 		Doc("return a list of all the profiles").
 		Param(ws.PathParameter("garbage", "ignore").DataType("string")).
-		Writes(Profile{}))
+		Writes(Profile{}))*/
 
 	ws.Route(ws.PUT("/{profile-id}").To(u.update).
 		// Swagger documentation.
