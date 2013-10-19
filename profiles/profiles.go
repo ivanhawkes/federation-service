@@ -15,8 +15,8 @@ import (
 // Our simple example struct.
 type Profile struct {
 	Id string `datastore:"-" json:"id" xml:"id"`
+	UserId string `datastore:"UserId" json:"-" xml:"-"` // The external Id for the user who this represents. Comes from user authentication library.
 	LastModified time.Time `json:"-" xml:"-"`
-	Email        string    `json:"-" xml:"-"`
 	FirstName    string    `json:"first_name" xml:"first-name"`
 	NickName     string    `json:"nick_name" xml:"nick-name"`
 	LastName     string    `json:"last_name" xml:"last-name"`
@@ -54,11 +54,6 @@ func (api ProfileApi) register() {
 		Param(ws.PathParameter("profile-id", "identifier for a profile").DataType("string")).
 		Writes(Profile{}))
 
-/*	ws.Route(ws.GET("/mine").To(api.mine).
-		// Swagger documentation.
-		Doc("return a list of all my profiles").
-		Writes(Profile{}))*/
-
 	ws.Route(ws.PUT("/{profile-id}").To(api.update).
 		// Swagger documentation.
 		Doc("update an existing profile").
@@ -91,7 +86,7 @@ func (api *ProfileApi) create(r *restful.Request, w *restful.Response) {
 	p.LastModified = time.Now()
 
 	// The resource belongs to this user.
-	p.Email = user.Current(c).String()
+	p.UserId = user.Current(c).ID
 
 	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "profiles", nil), p)
 	if err != nil {
@@ -137,7 +132,7 @@ func (api ProfileApi) read(r *restful.Request, w *restful.Response) {
 	// Check we own the resource before allowing them to view it.
 	// Optionally, return a 404 instead to help prevent guessing ids.
 	// TODO: Allow admins access.
-	if p.Email != user.Current(c).String() {
+	if p.UserId != user.Current(c).ID {
 		http.Error(w, "You do not have access to this resource", http.StatusForbidden)
 		return
 	}
@@ -147,26 +142,6 @@ func (api ProfileApi) read(r *restful.Request, w *restful.Response) {
 	
 	w.WriteEntity(p)
 }
-
-// GET http://localhost:8080/profiles
-//
-/*
-func (api ProfileApi) mine(r *restful.Request, w *restful.Response) {
-	c := appengine.NewContext(r.Request)
-
-	// Find a list of all the profiles for the current user.
-	q := datastore.NewQuery("profiles").Filter("Email =", user.Current(c).String())
-
-	//
-	var profiles []Profile
-	if _, err := q.GetAll(c, &profiles); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Return the results.
-	w.WriteEntity(profiles)
-}*/
 
 // Update the resource.
 //
@@ -202,14 +177,14 @@ func (api *ProfileApi) update(r *restful.Request, w *restful.Response) {
 	// Check we own the resource before allowing them to update it.
 	// Optionally, return a 404 instead to help prevent guessing ids.
 	// TODO: Allow admins access.
-	if old.Email != user.Current(c).String() {
+	if old.UserId != user.Current(c).ID {
 		http.Error(w, "You do not have access to this resource", http.StatusForbidden)
 		return
 	}
 
 	// Since the whole entity is re-written, we need to assign any invariant fields again
 	// e.g. the owner of the entity.
-	p.Email = user.Current(c).String()
+	p.UserId = user.Current(c).ID
 
 	// Keep track of the last modification date.
 	p.LastModified = time.Now()
@@ -251,7 +226,7 @@ func (api *ProfileApi) delete(r *restful.Request, w *restful.Response) {
 	// Check we own the resource before allowing them to delete it.
 	// Optionally, return a 404 instead to help prevent guessing ids.
 	// TODO: Allow admins access.
-	if old.Email != user.Current(c).String() {
+	if old.UserId != user.Current(c).ID {
 		http.Error(w, "You do not have access to this resource", http.StatusForbidden)
 		return
 	}

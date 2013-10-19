@@ -27,7 +27,7 @@ type UserShallow struct {
 
 type User struct {
 	UserShallow
-	OwnerId string `datastore:"OwnerId" json:"-" xml:"-"` // The external Id for the user who this represents. Comes from user authentication library.
+	UserId string `datastore:"UserId" json:"-" xml:"-"` // The external Id for the user who this represents. Comes from user authentication library.
 	LastModified time.Time `json:"-" xml:"-"`
 	Status int `json:"status" xml:"status"`
 }
@@ -97,7 +97,7 @@ func (api *UserApi) create(r *restful.Request, w *restful.Response) {
 	u.Status = StatusActive
 
 	// The resource belongs to this user.
-	u.OwnerId = user.Current(c).ID
+	u.UserId = user.Current(c).ID
 
 	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "users", nil), u)
 	if err != nil {
@@ -196,14 +196,14 @@ func (api *UserApi) update(r *restful.Request, w *restful.Response) {
 	// Check we own the resource before allowing them to update it.
 	// Optionally, return a 404 instead to help prevent guessing ids.
 	// TODO: Allow admins access.
-	if old.OwnerId != user.Current(c).ID {
+	if old.UserId != user.Current(c).ID {
 		http.Error(w, "You do not have access to this resource", http.StatusForbidden)
 		return
 	}
 
 	// Since the whole entity is re-written, we need to assign any invariant fields again
 	// e.g. the owner of the entity.
-	u.OwnerId = user.Current(c).ID
+	u.UserId = user.Current(c).ID
 
 	// Keep track of the last modification date.
 	u.LastModified = time.Now()
@@ -245,7 +245,7 @@ func (api *UserApi) delete(r *restful.Request, w *restful.Response) {
 	// Check we own the resource before allowing them to delete it.
 	// Optionally, return a 404 instead to help prevent guessing ids.
 	// TODO: Allow admins access.
-	if old.OwnerId != user.Current(c).ID {
+	if old.UserId != user.Current(c).ID {
 		http.Error(w, "You do not have access to this resource", http.StatusForbidden)
 		return
 	}
