@@ -43,6 +43,7 @@ func (api MyApi) profiles(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Find a list of all the profiles for the current user.
+	// TODO: Make this an ancestor query.
 	q := datastore.NewQuery("profiles").Filter("UserId =", user.Current(c).ID)
 
 	//
@@ -54,6 +55,7 @@ func (api MyApi) profiles(r *restful.Request, w *restful.Response) {
 		return
 	}
 
+	// TODO: we need to make sure the results are placed in a container to prevent XML / JSON errors.
 	// Provide an Id for every result returned.
 	for i, _ := range keys {
 		profs[i].Id = keys[i].Encode()

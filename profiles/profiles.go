@@ -10,12 +10,13 @@ import (
 )
 
 type Profile struct {
-	Id string `datastore:"-" json:"id" xml:"id"`
-	UserId string `datastore:"UserId" json:"-" xml:"-"`
+	Id           string    `datastore:"-" json:"id" xml:"id"`
+	UserId       string    `datastore:"UserId" json:"-" xml:"-"`
 	LastModified time.Time `json:"-" xml:"-"`
 	FirstName    string    `json:"first_name" xml:"first-name"`
 	NickName     string    `json:"nick_name" xml:"nick-name"`
 	LastName     string    `json:"last_name" xml:"last-name"`
+	FactionId    int64     `datastore:"FactionId" json:"faction_id" xml:"faction-id"` // The faction you belong to, if any.
 }
 
 type ProfileApi struct {
@@ -84,14 +85,31 @@ func (api *ProfileApi) create(r *restful.Request, w *restful.Response) {
 	// The resource belongs to this user.
 	p.UserId = user.Current(c).ID
 
-	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "profiles", nil), p)
+	// Set a user as our ancestor...this is done by querying for the key for the current user.
+	var ancestor *datastore.Key
+	q := datastore.NewQuery("users").
+		Filter("UserId =", user.Current(c).ID).
+		KeysOnly()
+	if keys, err := q.GetAll(c, nil); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	} else {
+		if keys == nil {
+			http.Error(w, "There is no user resource for this login account", http.StatusNotAcceptable)
+			return
+		}
+		ancestor = keys[0]
+	}
+
+	// Store the profile.
+	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "profiles", ancestor), p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// The resource Id.
-	p.Id = k.Encode ()
+	p.Id = k.Encode()
 
 	// Let them know the location of the newly created resource.
 	// TODO: Use a safe Url path append function.
@@ -134,8 +152,8 @@ func (api ProfileApi) read(r *restful.Request, w *restful.Response) {
 	}
 
 	// Set their Id.
-	p.Id = k.Encode ()
-	
+	p.Id = k.Encode()
+
 	w.WriteEntity(p)
 }
 

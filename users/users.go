@@ -100,6 +100,7 @@ func (api *UserApi) create(r *restful.Request, w *restful.Response) {
 	// The resource belongs to this user.
 	u.UserId = user.Current(c).ID
 
+	// Store the user.
 	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "users", nil), u)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

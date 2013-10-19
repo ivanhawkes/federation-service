@@ -97,7 +97,24 @@ func (api *FederationApi) create(r *restful.Request, w *restful.Response) {
 	// The resource belongs to this federation.
 	f.UserId = user.Current(c).ID
 
-	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "federations", nil), f)
+	// Set a user as our ancestor...this is done by querying for the key for the current user.
+	var ancestor *datastore.Key
+	q := datastore.NewQuery("users").
+		Filter("UserId =", user.Current(c).ID).
+		KeysOnly()
+	if keys, err := q.GetAll(c, nil); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	} else {
+		if keys == nil {
+			http.Error(w, "There is no user resource for this login account", http.StatusNotAcceptable)
+			return
+		}
+		ancestor = keys[0]
+	}
+
+	// Store the federation.
+	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "federations", ancestor), f)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
