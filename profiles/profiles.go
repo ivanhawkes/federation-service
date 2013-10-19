@@ -9,13 +9,9 @@ import (
 	"time"
 )
 
-// This example demonstrates a reasonably complete suite of RESTful operations backed
-// by DataStore on Google App Engine.
-
-// Our simple example struct.
 type Profile struct {
 	Id string `datastore:"-" json:"id" xml:"id"`
-	UserId string `datastore:"UserId" json:"-" xml:"-"` // The external Id for the user who this represents. Comes from user authentication library.
+	UserId string `datastore:"UserId" json:"-" xml:"-"`
 	LastModified time.Time `json:"-" xml:"-"`
 	FirstName    string    `json:"first_name" xml:"first-name"`
 	NickName     string    `json:"nick_name" xml:"nick-name"`

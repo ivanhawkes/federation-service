@@ -1,4 +1,4 @@
-package users
+package federations
 
 import (
 	"appengine"
@@ -9,42 +9,39 @@ import (
 	"time"
 )
 
-// The various states for a user resource.
+// The various states for a federation resource.
 const (
 	StatusActive = iota
 	StatusDeactivated
-	StatusPermanentlyBanned
 	StatusPendingActivation
 	StatusDeletionPending
 	StatusDeleted)
 
-type UserShallow struct {
+type FederationShallow struct {
 	Id string `datastore:"-" json:"id" xml:"id"`
-	FirstName string `json:"first_name" xml:"first-name"`
-	LastName string `json:"last_name" xml:"last-name"`
-	AvatarUrl string `json:"avatar_url" xml:"avatar-url"`
+	Name string `json:"name" xml:"name"`
 	Link string `datastore:"-" json:"link" xml:"link"`
 }
 
-type User struct {
-	UserShallow
-	UserId string `datastore:"UserId" json:"-" xml:"-"` // The external Id for the user who this represents. Comes from user authentication library.
+type Federation struct {
+	FederationShallow
+	UserId string `datastore:"UserId" json:"-" xml:"-"`
 	LastModified time.Time `json:"-" xml:"-"`
 	Status int `json:"status" xml:"status"`
 }
 
-type UserApi struct {
+type FederationApi struct {
 	Path string
 }
 
 func init() {
-	api := UserApi{Path: "/users"}
+	api := FederationApi{Path: "/federations"}
 	api.register()
 }
 
 // Register the routes we require for this resource type.
 //
-func (api UserApi) register() {
+func (api FederationApi) register() {
 	ws := new(restful.WebService)
 
 	ws.
@@ -55,59 +52,59 @@ func (api UserApi) register() {
 
 	ws.Route(ws.POST("").To(api.create).
 		// Swagger documentation.
-		Doc("create a new user").
-		Param(ws.BodyParameter("User", "representation of a user").DataType("users.User")).
-		Reads(User{}))
+		Doc("create a new federation").
+		Param(ws.BodyParameter("Federation", "representation of a federation").DataType("federations.Federation")).
+		Reads(Federation{}))
 
-	ws.Route(ws.GET("/{user-id}").To(api.read).
+	ws.Route(ws.GET("/{federation-id}").To(api.read).
 		// Swagger documentation.
-		Doc("read a user").
-		Param(ws.PathParameter("user-id", "identifier for a user").DataType("string")).
-		Writes(User{}))
+		Doc("read a federation").
+		Param(ws.PathParameter("federation-id", "identifier for a federation").DataType("string")).
+		Writes(Federation{}))
 
-	ws.Route(ws.PUT("/{user-id}").To(api.update).
+	ws.Route(ws.PUT("/{federation-id}").To(api.update).
 		// Swagger documentation.
-		Doc("update an existing user").
-		Param(ws.PathParameter("user-id", "identifier for a user").DataType("string")).
-		Param(ws.BodyParameter("User", "representation of a user").DataType("users.User")).
-		Reads(User{}))
+		Doc("update an existing federation").
+		Param(ws.PathParameter("federation-id", "identifier for a federation").DataType("string")).
+		Param(ws.BodyParameter("Federation", "representation of a federation").DataType("federations.Federation")).
+		Reads(Federation{}))
 
-	ws.Route(ws.DELETE("/{user-id}").To(api.delete).
+	ws.Route(ws.DELETE("/{federation-id}").To(api.delete).
 		// Swagger documentation.
-		Doc("delete a user").
-		Param(ws.PathParameter("user-id", "identifier for a user").DataType("string")))
+		Doc("delete a federation").
+		Param(ws.PathParameter("federation-id", "identifier for a federation").DataType("string")))
 
 	restful.Add(ws)
 }
 
 // Create a new resource.
 //
-func (api *UserApi) create(r *restful.Request, w *restful.Response) {
+func (api *FederationApi) create(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Marshall the entity from the request into a struct.
-	u := new(User)
-	err := r.ReadEntity(&u)
+	f := new(Federation)
+	err := r.ReadEntity(&f)
 	if err != nil {
 		w.WriteError(http.StatusNotAcceptable, err)
 		return
 	}
 
 	// Set some fields that need special handling.
-	u.LastModified = time.Now()
-	u.Status = StatusActive
+	f.LastModified = time.Now()
+	f.Status = StatusActive
 
-	// The resource belongs to this user.
-	u.UserId = user.Current(c).ID
+	// The resource belongs to this federation.
+	f.UserId = user.Current(c).ID
 
-	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "users", nil), u)
+	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "federations", nil), f)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// The resource Id.
-	u.Id = k.Encode ()
+	f.Id = k.Encode ()
 
 	// Let them know the location of the newly created resource.
 	// TODO: Use a safe Url path append function.
@@ -115,28 +112,28 @@ func (api *UserApi) create(r *restful.Request, w *restful.Response) {
 
 	// Provide a link for ease of API usage.
 	// TODO: This should be a fully qualified path.
-	u.Link = api.Path+"/"+k.Encode()
+	f.Link = api.Path+"/"+k.Encode()
 
 	// Return the resultant entity.
 	w.WriteHeader(http.StatusCreated)
-	w.WriteEntity(u)
+	w.WriteEntity(f)
 }
 
 // Read the resource.
 //
-func (api UserApi) read(r *restful.Request, w *restful.Response) {
+func (api FederationApi) read(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Decode the request parameter to determine the key for the entity.
-	k, err := datastore.DecodeKey(r.PathParameter("user-id"))
+	k, err := datastore.DecodeKey(r.PathParameter("federation-id"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Retrieve the entity from the datastore.
-	u := User{}
-	if err := datastore.Get(c, k, &u); err != nil {
+	f := Federation{}
+	if err := datastore.Get(c, k, &f); err != nil {
 		if err.Error() == "datastore: no such entity" {
 			http.Error(w, err.Error(), http.StatusNotFound)
 		} else {
@@ -148,43 +145,43 @@ func (api UserApi) read(r *restful.Request, w *restful.Response) {
 	// Check we own the resource before allowing them to view it.
 	// Optionally, return a 404 instead to help prevent guessing ids.
 	// TODO: Allow admins access.
-	//if u.Email != user.Current(c).String() {
+	//if f.Email != federation.Current(c).String() {
 	//	http.Error(w, "You do not have access to this resource", http.StatusForbidden)
 	//	return
 	//}
 
 	// Set their Id.
-	u.Id = k.Encode ()
+	f.Id = k.Encode ()
 
 	// Provide a link for ease of API usage.
 	// TODO: This should be a fully qualified path.
-	u.Link = api.Path+"/"+k.Encode()
+	f.Link = api.Path+"/"+k.Encode()
 
-	w.WriteEntity(u)
+	w.WriteEntity(f)
 }
 
 // Update the resource.
 //
-func (api *UserApi) update(r *restful.Request, w *restful.Response) {
+func (api *FederationApi) update(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Decode the request parameter to determine the key for the entity.
-	k, err := datastore.DecodeKey(r.PathParameter("user-id"))
+	k, err := datastore.DecodeKey(r.PathParameter("federation-id"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Marshall the entity from the request into a struct.
-	u := new(User)
-	err = r.ReadEntity(&u)
+	f := new(Federation)
+	err = r.ReadEntity(&f)
 	if err != nil {
 		w.WriteError(http.StatusNotAcceptable, err)
 		return
 	}
 
 	// Retrieve the old entity from the datastore.
-	old := User{}
+	old := Federation{}
 	if err := datastore.Get(c, k, &old); err != nil {
 		if err.Error() == "datastore: no such entity" {
 			http.Error(w, err.Error(), http.StatusNotFound)
@@ -204,13 +201,13 @@ func (api *UserApi) update(r *restful.Request, w *restful.Response) {
 
 	// Since the whole entity is re-written, we need to assign any invariant fields again
 	// e.g. the owner of the entity.
-	u.UserId = user.Current(c).ID
+	f.UserId = user.Current(c).ID
 
 	// Keep track of the last modification date.
-	u.LastModified = time.Now()
+	f.LastModified = time.Now()
 
 	// Attempt to overwrite the old entity.
-	_, err = datastore.Put(c, k, u)
+	_, err = datastore.Put(c, k, f)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -222,18 +219,18 @@ func (api *UserApi) update(r *restful.Request, w *restful.Response) {
 
 // Delete the resource.
 //
-func (api *UserApi) delete(r *restful.Request, w *restful.Response) {
+func (api *FederationApi) delete(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Decode the request parameter to determine the key for the entity.
-	k, err := datastore.DecodeKey(r.PathParameter("user-id"))
+	k, err := datastore.DecodeKey(r.PathParameter("federation-id"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Retrieve the old entity from the datastore.
-	old := User{}
+	old := Federation{}
 	if err := datastore.Get(c, k, &old); err != nil {
 		if err.Error() == "datastore: no such entity" {
 			http.Error(w, err.Error(), http.StatusNotFound)
