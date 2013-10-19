@@ -9,6 +9,15 @@ import (
 	"time"
 )
 
+// The various states for a user resource.
+const (
+	StatusPermanentlyBanned = iota
+	StatusPendingActivation
+	StatusActive
+	StatusDeactivated
+	StatusDeletionPending
+	StatusDeleted)
+
 type UserShallow struct {
 	Id string `datastore:"-" json:"id" xml:"id"` // The Id for this resource.
 	DisplayName string `json:"display_name" xml:"display-name"`
@@ -20,7 +29,7 @@ type User struct {
 	UserShallow
 	OwnerId string `datastore:"OwnerId" json:"-" xml:"-"` // The external Id for the user who this represents. Comes from user authentication library.
 	LastModified time.Time `json:"-" xml:"-"`
-	Status int `json:"status" xml:"status"` // 1 - Pending activation, 2 - active, 3 - deactivated, 4 - deleted, 5 - permanently banned
+	Status int `json:"status" xml:"status"`
 }
 
 type UserApi struct {
@@ -85,7 +94,7 @@ func (api *UserApi) create(r *restful.Request, w *restful.Response) {
 
 	// Set some fields that need special handling.
 	u.LastModified = time.Now()
-	u.Status = 2
+	u.Status = StatusActive
 
 	// The resource belongs to this user.
 	u.OwnerId = user.Current(c).ID
