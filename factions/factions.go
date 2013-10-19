@@ -1,4 +1,4 @@
-package federations
+package factions
 
 import (
 	"appengine"
@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// The various states for a federation resource.
+// The various states for a faction resource.
 const (
 	StatusActive = iota
 	StatusDeactivated
@@ -17,31 +17,31 @@ const (
 	StatusDeletionPending
 	StatusDeleted)
 
-type FederationShallow struct {
+type FactionShallow struct {
 	Id string `datastore:"-" json:"id" xml:"id"`
 	Name string `json:"name" xml:"name"`
 	Link string `datastore:"-" json:"link" xml:"link"`
 }
 
-type Federation struct {
-	FederationShallow
+type Faction struct {
+	FactionShallow
 	UserId string `datastore:"UserId" json:"-" xml:"-"`
 	LastModified time.Time `json:"-" xml:"-"`
 	Status int `json:"status" xml:"status"`
 }
 
-type FederationApi struct {
+type FactionApi struct {
 	Path string
 }
 
 func init() {
-	api := FederationApi{Path: "/federations"}
+	api := FactionApi{Path: "/factions"}
 	api.register()
 }
 
 // Register the routes we require for this resource type.
 //
-func (api FederationApi) register() {
+func (api FactionApi) register() {
 	ws := new(restful.WebService)
 
 	ws.
@@ -52,38 +52,38 @@ func (api FederationApi) register() {
 
 	ws.Route(ws.POST("").To(api.create).
 		// Swagger documentation.
-		Doc("create a new federation").
-		Param(ws.BodyParameter("Federation", "representation of a federation").DataType("federations.Federation")).
-		Reads(Federation{}))
+		Doc("create a new faction").
+		Param(ws.BodyParameter("Faction", "representation of a faction").DataType("factions.Faction")).
+		Reads(Faction{}))
 
-	ws.Route(ws.GET("/{federation-id}").To(api.read).
+	ws.Route(ws.GET("/{faction-id}").To(api.read).
 		// Swagger documentation.
-		Doc("read a federation").
-		Param(ws.PathParameter("federation-id", "identifier for a federation").DataType("string")).
-		Writes(Federation{}))
+		Doc("read a faction").
+		Param(ws.PathParameter("faction-id", "identifier for a faction").DataType("string")).
+		Writes(Faction{}))
 
-	ws.Route(ws.PUT("/{federation-id}").To(api.update).
+	ws.Route(ws.PUT("/{faction-id}").To(api.update).
 		// Swagger documentation.
-		Doc("update an existing federation").
-		Param(ws.PathParameter("federation-id", "identifier for a federation").DataType("string")).
-		Param(ws.BodyParameter("Federation", "representation of a federation").DataType("federations.Federation")).
-		Reads(Federation{}))
+		Doc("update an existing faction").
+		Param(ws.PathParameter("faction-id", "identifier for a faction").DataType("string")).
+		Param(ws.BodyParameter("Faction", "representation of a faction").DataType("factions.Faction")).
+		Reads(Faction{}))
 
-	ws.Route(ws.DELETE("/{federation-id}").To(api.delete).
+	ws.Route(ws.DELETE("/{faction-id}").To(api.delete).
 		// Swagger documentation.
-		Doc("delete a federation").
-		Param(ws.PathParameter("federation-id", "identifier for a federation").DataType("string")))
+		Doc("delete a faction").
+		Param(ws.PathParameter("faction-id", "identifier for a faction").DataType("string")))
 
 	restful.Add(ws)
 }
 
 // Create a new resource.
 //
-func (api *FederationApi) create(r *restful.Request, w *restful.Response) {
+func (api *FactionApi) create(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Marshall the entity from the request into a struct.
-	f := new(Federation)
+	f := new(Faction)
 	err := r.ReadEntity(&f)
 	if err != nil {
 		w.WriteError(http.StatusNotAcceptable, err)
@@ -94,10 +94,10 @@ func (api *FederationApi) create(r *restful.Request, w *restful.Response) {
 	f.LastModified = time.Now()
 	f.Status = StatusActive
 
-	// The resource belongs to this federation.
+	// The resource belongs to this faction.
 	f.UserId = user.Current(c).ID
 
-	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "federations", nil), f)
+	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "factions", nil), f)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -121,18 +121,18 @@ func (api *FederationApi) create(r *restful.Request, w *restful.Response) {
 
 // Read the resource.
 //
-func (api FederationApi) read(r *restful.Request, w *restful.Response) {
+func (api FactionApi) read(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Decode the request parameter to determine the key for the entity.
-	k, err := datastore.DecodeKey(r.PathParameter("federation-id"))
+	k, err := datastore.DecodeKey(r.PathParameter("faction-id"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Retrieve the entity from the datastore.
-	f := Federation{}
+	f := Faction{}
 	if err := datastore.Get(c, k, &f); err != nil {
 		if err.Error() == "datastore: no such entity" {
 			http.Error(w, err.Error(), http.StatusNotFound)
@@ -162,18 +162,18 @@ func (api FederationApi) read(r *restful.Request, w *restful.Response) {
 
 // Update the resource.
 //
-func (api *FederationApi) update(r *restful.Request, w *restful.Response) {
+func (api *FactionApi) update(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Decode the request parameter to determine the key for the entity.
-	k, err := datastore.DecodeKey(r.PathParameter("federation-id"))
+	k, err := datastore.DecodeKey(r.PathParameter("faction-id"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Marshall the entity from the request into a struct.
-	f := new(Federation)
+	f := new(Faction)
 	err = r.ReadEntity(&f)
 	if err != nil {
 		w.WriteError(http.StatusNotAcceptable, err)
@@ -181,7 +181,7 @@ func (api *FederationApi) update(r *restful.Request, w *restful.Response) {
 	}
 
 	// Retrieve the old entity from the datastore.
-	old := Federation{}
+	old := Faction{}
 	if err := datastore.Get(c, k, &old); err != nil {
 		if err.Error() == "datastore: no such entity" {
 			http.Error(w, err.Error(), http.StatusNotFound)
@@ -219,18 +219,18 @@ func (api *FederationApi) update(r *restful.Request, w *restful.Response) {
 
 // Delete the resource.
 //
-func (api *FederationApi) delete(r *restful.Request, w *restful.Response) {
+func (api *FactionApi) delete(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Decode the request parameter to determine the key for the entity.
-	k, err := datastore.DecodeKey(r.PathParameter("federation-id"))
+	k, err := datastore.DecodeKey(r.PathParameter("faction-id"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Retrieve the old entity from the datastore.
-	old := Federation{}
+	old := Faction{}
 	if err := datastore.Get(c, k, &old); err != nil {
 		if err.Error() == "datastore: no such entity" {
 			http.Error(w, err.Error(), http.StatusNotFound)

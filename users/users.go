@@ -148,7 +148,7 @@ func (api UserApi) read(r *restful.Request, w *restful.Response) {
 	// Check we own the resource before allowing them to view it.
 	// Optionally, return a 404 instead to help prevent guessing ids.
 	// TODO: Allow admins access.
-	//if u.Email != user.Current(c).String() {
+	//if u.UserId != user.Current(c).ID {
 	//	http.Error(w, "You do not have access to this resource", http.StatusForbidden)
 	//	return
 	//}
