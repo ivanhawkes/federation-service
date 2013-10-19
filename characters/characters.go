@@ -1,4 +1,4 @@
-package realms
+package characters
 
 import (
 	"appengine"
@@ -9,39 +9,44 @@ import (
 	"time"
 )
 
-// The various states for a realm resource.
+// The various states for a character resource.
 const (
 	StatusActive = iota
 	StatusDeactivated
-	StatusPendingActivation
 	StatusDeletionPending
-	StatusDeleted)
+	StatusDeleted
+	StatusBanned
+	StatusPermanentBan
+)
 
-type RealmShallow struct {
-	Id string `datastore:"-" json:"id" xml:"id"`
-	Name string `json:"name" xml:"name"`
-	Link string `datastore:"-" json:"link" xml:"link"`
+type CharacterShallow struct {
+	Id        string `datastore:"-" json:"id" xml:"id"`
+	FirstName string `json:"first_name" xml:"first-name"`
+	NickName  string `json:"nick_name" xml:"nick-name"`
+	LastName  string `json:"last_name" xml:"last-name"`
+	Link      string `datastore:"-" json:"link" xml:"link"`
+	FactionId int64  `datastore:"FactionId" json:"faction_id" xml:"faction-id"`
 }
 
-type Realm struct {
-	RealmShallow
-	UserId string `datastore:"UserId" json:"-" xml:"-"`
+type Character struct {
+	CharacterShallow
+	UserId       string    `datastore:"UserId" json:"-" xml:"-"`
 	LastModified time.Time `json:"-" xml:"-"`
-	Status int `json:"status" xml:"status"`
+	Status       int       `json:"status" xml:"status"`
 }
 
-type RealmApi struct {
+type CharacterApi struct {
 	Path string
 }
 
 func init() {
-	api := RealmApi{Path: "/realms"}
+	api := CharacterApi{Path: "/characters"}
 	api.register()
 }
 
 // Register the routes we require for this resource type.
 //
-func (api RealmApi) register() {
+func (api CharacterApi) register() {
 	ws := new(restful.WebService)
 
 	ws.
@@ -51,77 +56,60 @@ func (api RealmApi) register() {
 
 	ws.Route(ws.POST("").To(api.create).
 		// Swagger documentation.
-		Doc("create a new realm").
-		Param(ws.BodyParameter("Realm", "representation of a realm").DataType("realms.Realm")).
-		Reads(Realm{}))
+		Doc("create a new character").
+		Param(ws.BodyParameter("Character", "representation of a character").DataType("characters.Character")).
+		Reads(Character{}))
 
-	ws.Route(ws.GET("/{realm-id}").To(api.read).
+	ws.Route(ws.GET("/{character-id}").To(api.read).
 		// Swagger documentation.
-		Doc("read a realm").
-		Param(ws.PathParameter("realm-id", "identifier for a realm").DataType("string")).
-		Writes(Realm{}))
+		Doc("read a character").
+		Param(ws.PathParameter("character-id", "identifier for a character").DataType("string")).
+		Writes(Character{}))
 
-	ws.Route(ws.PUT("/{realm-id}").To(api.update).
+	ws.Route(ws.PUT("/{character-id}").To(api.update).
 		// Swagger documentation.
-		Doc("update an existing realm").
-		Param(ws.PathParameter("realm-id", "identifier for a realm").DataType("string")).
-		Param(ws.BodyParameter("Realm", "representation of a realm").DataType("realms.Realm")).
-		Reads(Realm{}))
+		Doc("update an existing character").
+		Param(ws.PathParameter("character-id", "identifier for a character").DataType("string")).
+		Param(ws.BodyParameter("Character", "representation of a character").DataType("characters.Character")).
+		Reads(Character{}))
 
-	ws.Route(ws.DELETE("/{realm-id}").To(api.delete).
+	ws.Route(ws.DELETE("/{character-id}").To(api.delete).
 		// Swagger documentation.
-		Doc("delete a realm").
-		Param(ws.PathParameter("realm-id", "identifier for a realm").DataType("string")))
+		Doc("delete a character").
+		Param(ws.PathParameter("character-id", "identifier for a character").DataType("string")))
 
 	restful.Add(ws)
 }
 
 // Create a new resource.
 //
-func (api *RealmApi) create(r *restful.Request, w *restful.Response) {
+func (api *CharacterApi) create(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Marshall the entity from the request into a struct.
-	realm := new(Realm)
-	err := r.ReadEntity(&realm)
+	character := new(Character)
+	err := r.ReadEntity(&character)
 	if err != nil {
 		w.WriteError(http.StatusNotAcceptable, err)
 		return
 	}
 
 	// Set some fields that need special handling.
-	realm.LastModified = time.Now()
-	realm.Status = StatusActive
+	character.LastModified = time.Now()
+	character.Status = StatusActive
 
-	// The resource belongs to this realm.
-	realm.UserId = user.Current(c).ID
+	// The resource belongs to this character.
+	character.UserId = user.Current(c).ID
 
-	// TODO: Should be ancestor to a federation.
-	// Set a user as our ancestor...this is done by querying for the key for the current user.
-/*	var ancestor *datastore.Key
-	q := datastore.NewQuery("users").
-		Filter("UserId =", user.Current(c).ID).
-		KeysOnly()
-	if keys, err := q.GetAll(c, nil); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	} else {
-		if keys == nil {
-			http.Error(w, "There is no user resource for this login account", http.StatusNotAcceptable)
-			return
-		}
-		ancestor = keys[0]
-	}*/
-
-	// Store the realm.
-	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "realms", nil/*ancestor*/), realm)
+	// Store the character.
+	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "characters", nil /*ancestor*/), character)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// The resource Id.
-	realm.Id = k.Encode ()
+	character.Id = k.Encode()
 
 	// Let them know the location of the newly created resource.
 	// TODO: Use a safe Url path append function.
@@ -129,28 +117,28 @@ func (api *RealmApi) create(r *restful.Request, w *restful.Response) {
 
 	// Provide a link for ease of API usage.
 	// TODO: This should be a fully qualified path.
-	realm.Link = api.Path+"/"+k.Encode()
+	character.Link = api.Path + "/" + k.Encode()
 
 	// Return the resultant entity.
 	w.WriteHeader(http.StatusCreated)
-	w.WriteEntity(realm)
+	w.WriteEntity(character)
 }
 
 // Read the resource.
 //
-func (api RealmApi) read(r *restful.Request, w *restful.Response) {
+func (api CharacterApi) read(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Decode the request parameter to determine the key for the entity.
-	k, err := datastore.DecodeKey(r.PathParameter("realm-id"))
+	k, err := datastore.DecodeKey(r.PathParameter("character-id"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Retrieve the entity from the datastore.
-	realm := Realm{}
-	if err := datastore.Get(c, k, &realm); err != nil {
+	character := Character{}
+	if err := datastore.Get(c, k, &character); err != nil {
 		if err.Error() == "datastore: no such entity" {
 			http.Error(w, err.Error(), http.StatusNotFound)
 		} else {
@@ -162,43 +150,43 @@ func (api RealmApi) read(r *restful.Request, w *restful.Response) {
 	// Check we own the resource before allowing them to view it.
 	// Optionally, return a 404 instead to help prevent guessing ids.
 	// TODO: Allow admins access.
-	//if realm.UserId != user.Current(c).ID {
+	//if character.UserId != user.Current(c).ID {
 	//	http.Error(w, "You do not have access to this resource", http.StatusForbidden)
 	//	return
 	//}
 
 	// Set their Id.
-	realm.Id = k.Encode ()
+	character.Id = k.Encode()
 
 	// Provide a link for ease of API usage.
 	// TODO: This should be a fully qualified path.
-	realm.Link = api.Path+"/"+k.Encode()
+	character.Link = api.Path + "/" + k.Encode()
 
-	w.WriteEntity(realm)
+	w.WriteEntity(character)
 }
 
 // Update the resource.
 //
-func (api *RealmApi) update(r *restful.Request, w *restful.Response) {
+func (api *CharacterApi) update(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Decode the request parameter to determine the key for the entity.
-	k, err := datastore.DecodeKey(r.PathParameter("realm-id"))
+	k, err := datastore.DecodeKey(r.PathParameter("character-id"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Marshall the entity from the request into a struct.
-	realm := new(Realm)
-	err = r.ReadEntity(&realm)
+	character := new(Character)
+	err = r.ReadEntity(&character)
 	if err != nil {
 		w.WriteError(http.StatusNotAcceptable, err)
 		return
 	}
 
 	// Retrieve the old entity from the datastore.
-	old := Realm{}
+	old := Character{}
 	if err := datastore.Get(c, k, &old); err != nil {
 		if err.Error() == "datastore: no such entity" {
 			http.Error(w, err.Error(), http.StatusNotFound)
@@ -218,13 +206,13 @@ func (api *RealmApi) update(r *restful.Request, w *restful.Response) {
 
 	// Since the whole entity is re-written, we need to assign any invariant fields again
 	// e.g. the owner of the entity.
-	realm.UserId = user.Current(c).ID
+	character.UserId = user.Current(c).ID
 
 	// Keep track of the last modification date.
-	realm.LastModified = time.Now()
+	character.LastModified = time.Now()
 
 	// Attempt to overwrite the old entity.
-	_, err = datastore.Put(c, k, realm)
+	_, err = datastore.Put(c, k, character)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -236,18 +224,18 @@ func (api *RealmApi) update(r *restful.Request, w *restful.Response) {
 
 // Delete the resource.
 //
-func (api *RealmApi) delete(r *restful.Request, w *restful.Response) {
+func (api *CharacterApi) delete(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Decode the request parameter to determine the key for the entity.
-	k, err := datastore.DecodeKey(r.PathParameter("realm-id"))
+	k, err := datastore.DecodeKey(r.PathParameter("character-id"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Retrieve the old entity from the datastore.
-	old := Realm{}
+	old := Character{}
 	if err := datastore.Get(c, k, &old); err != nil {
 		if err.Error() == "datastore: no such entity" {
 			http.Error(w, err.Error(), http.StatusNotFound)

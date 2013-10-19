@@ -25,7 +25,6 @@ func (api MyApi) register() {
 
 	ws.
 		Path(api.Path).
-		// You can specify consumes and produces per route as well.
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 
