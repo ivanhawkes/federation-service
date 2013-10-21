@@ -5,9 +5,13 @@ import (
 	"appengine/datastore"
 	"appengine/user"
 	"github.com/emicklei/go-restful"
+	"log"
 	"net/http"
 	"time"
-	"log"
+)
+
+const (
+	rootPath = "/zones"
 )
 
 // The various states for a zone resource.
@@ -16,29 +20,27 @@ const (
 	StatusDeactivated
 	StatusPendingActivation
 	StatusDeletionPending
-	StatusDeleted)
+	StatusDeleted
+)
 
 type ZoneShallow struct {
-	Id string `datastore:"-" json:"id" xml:"id"`
+	Id   string `datastore:"-" json:"id" xml:"id"`
 	Name string `json:"name" xml:"name"`
 	Link string `datastore:"-" json:"link" xml:"link"`
 }
 
 type Zone struct {
 	ZoneShallow
-	UserId string `datastore:"UserId" json:"-" xml:"-"` // Owner and by extension, leader. TODO: perhaps not require the leader to be this User.
+	UserId       string    `datastore:"UserId" json:"-" xml:"-"` // Owner and by extension, leader. TODO: perhaps not require the leader to be this User.
 	LastModified time.Time `json:"-" xml:"-"`
-	Status int `json:"status" xml:"status"`
+	Status       int       `json:"status" xml:"status"`
 }
 
 type ZoneApi struct {
-	Path string
 }
 
 func init() {
-    log.Printf("Zones: Register")
-    api := ZoneApi{Path: "/zones"}
-	api.Register()
+	log.Printf("Zones: Register")
 }
 
 // Register the routes we require for this resource type.
@@ -47,7 +49,7 @@ func (api ZoneApi) Register() {
 	ws := new(restful.WebService)
 
 	ws.
-		Path(api.Path).
+		Path(rootPath).
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 
@@ -99,38 +101,38 @@ func (api *ZoneApi) create(r *restful.Request, w *restful.Response) {
 	f.UserId = user.Current(c).ID
 
 	// Set a user as our ancestor...this is done by querying for the key for the current user.
-/*	var ancestor *datastore.Key
-	q := datastore.NewQuery("users").
-		Filter("UserId =", user.Current(c).ID).
-		KeysOnly()
-	if keys, err := q.GetAll(c, nil); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	} else {
-		if keys == nil {
-			http.Error(w, "There is no user resource for this login account", http.StatusNotAcceptable)
+	/*	var ancestor *datastore.Key
+		q := datastore.NewQuery("users").
+			Filter("UserId =", user.Current(c).ID).
+			KeysOnly()
+		if keys, err := q.GetAll(c, nil); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
-		}
-		ancestor = keys[0]
-	}*/
+		} else {
+			if keys == nil {
+				http.Error(w, "There is no user resource for this login account", http.StatusNotAcceptable)
+				return
+			}
+			ancestor = keys[0]
+		}*/
 
 	// Store the zone.
-	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "zones", nil/*ancestor*/), f)
+	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "zones", nil /*ancestor*/), f)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// The resource Id.
-	f.Id = k.Encode ()
+	f.Id = k.Encode()
 
 	// Let them know the location of the newly created resource.
 	// TODO: Use a safe Url path append function.
-	w.AddHeader("Location", api.Path+"/"+k.Encode())
+	w.AddHeader("Location", rootPath+"/"+k.Encode())
 
 	// Provide a link for ease of API usage.
 	// TODO: This should be a fully qualified path.
-	f.Link = api.Path+"/"+k.Encode()
+	f.Link = rootPath + "/" + k.Encode()
 
 	// Return the resultant entity.
 	w.WriteHeader(http.StatusCreated)
@@ -169,11 +171,11 @@ func (api ZoneApi) read(r *restful.Request, w *restful.Response) {
 	//}
 
 	// Set their Id.
-	f.Id = k.Encode ()
+	f.Id = k.Encode()
 
 	// Provide a link for ease of API usage.
 	// TODO: This should be a fully qualified path.
-	f.Link = api.Path+"/"+k.Encode()
+	f.Link = rootPath + "/" + k.Encode()
 
 	w.WriteEntity(f)
 }

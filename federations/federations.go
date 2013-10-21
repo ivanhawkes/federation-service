@@ -5,9 +5,13 @@ import (
 	"appengine/datastore"
 	"appengine/user"
 	"github.com/emicklei/go-restful"
+	"log"
 	"net/http"
 	"time"
-	"log"
+)
+
+const (
+	rootPath = "/federations"
 )
 
 // The various states for a federation resource.
@@ -16,19 +20,20 @@ const (
 	StatusDeactivated
 	StatusPendingActivation
 	StatusDeletionPending
-	StatusDeleted)
+	StatusDeleted
+)
 
 type FederationShallow struct {
-	Id string `datastore:"-" json:"id" xml:"id"`
+	Id   string `datastore:"-" json:"id" xml:"id"`
 	Name string `json:"name" xml:"name"`
 	Link string `datastore:"-" json:"link" xml:"link"`
 }
 
 type Federation struct {
 	FederationShallow
-	UserId string `datastore:"UserId" json:"-" xml:"-"`
+	UserId       string    `datastore:"UserId" json:"-" xml:"-"`
 	LastModified time.Time `json:"-" xml:"-"`
-	Status int `json:"status" xml:"status"`
+	Status       int       `json:"status" xml:"status"`
 }
 
 type FederationApi struct {
@@ -36,9 +41,7 @@ type FederationApi struct {
 }
 
 func init() {
-    log.Printf("Federations: Register")
-	api := FederationApi{Path: "/federations"}
-	api.Register()
+	log.Printf("Federations: Register")
 }
 
 // Register the routes we require for this resource type.
@@ -47,7 +50,7 @@ func (api FederationApi) Register() {
 	ws := new(restful.WebService)
 
 	ws.
-		Path(api.Path).
+		Path(rootPath).
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 
@@ -122,15 +125,15 @@ func (api *FederationApi) create(r *restful.Request, w *restful.Response) {
 	}
 
 	// The resource Id.
-	f.Id = k.Encode ()
+	f.Id = k.Encode()
 
 	// Let them know the location of the newly created resource.
 	// TODO: Use a safe Url path append function.
-	w.AddHeader("Location", api.Path+"/"+k.Encode())
+	w.AddHeader("Location", rootPath+"/"+k.Encode())
 
 	// Provide a link for ease of API usage.
 	// TODO: This should be a fully qualified path.
-	f.Link = api.Path+"/"+k.Encode()
+	f.Link = rootPath + "/" + k.Encode()
 
 	// Return the resultant entity.
 	w.WriteHeader(http.StatusCreated)
@@ -169,11 +172,11 @@ func (api FederationApi) read(r *restful.Request, w *restful.Response) {
 	//}
 
 	// Set their Id.
-	f.Id = k.Encode ()
+	f.Id = k.Encode()
 
 	// Provide a link for ease of API usage.
 	// TODO: This should be a fully qualified path.
-	f.Link = api.Path+"/"+k.Encode()
+	f.Link = rootPath + "/" + k.Encode()
 
 	w.WriteEntity(f)
 }

@@ -5,9 +5,13 @@ import (
 	"appengine/datastore"
 	"appengine/user"
 	"github.com/emicklei/go-restful"
+	"log"
 	"net/http"
 	"profiles"
-	"log"
+)
+
+const (
+	rootPath = "/my"
 )
 
 type MyApi struct {
@@ -15,9 +19,7 @@ type MyApi struct {
 }
 
 func init() {
-    log.Printf("My: Register")
-	api := MyApi{Path: "/my"}
-	api.Register()
+	log.Printf("My: Register")
 }
 
 // Register the routes we require for this resource type.
@@ -26,7 +28,7 @@ func (api MyApi) Register() {
 	ws := new(restful.WebService)
 
 	ws.
-		Path(api.Path).
+		Path(rootPath).
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 

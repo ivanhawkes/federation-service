@@ -5,9 +5,13 @@ import (
 	"appengine/datastore"
 	"appengine/user"
 	"github.com/emicklei/go-restful"
+	"log"
 	"net/http"
 	"time"
-	"log"
+)
+
+const (
+	rootPath = "/realms"
 )
 
 // The various states for a realm resource.
@@ -16,19 +20,20 @@ const (
 	StatusDeactivated
 	StatusPendingActivation
 	StatusDeletionPending
-	StatusDeleted)
+	StatusDeleted
+)
 
 type RealmShallow struct {
-	Id string `datastore:"-" json:"id" xml:"id"`
+	Id   string `datastore:"-" json:"id" xml:"id"`
 	Name string `json:"name" xml:"name"`
 	Link string `datastore:"-" json:"link" xml:"link"`
 }
 
 type Realm struct {
 	RealmShallow
-	UserId string `datastore:"UserId" json:"-" xml:"-"`
+	UserId       string    `datastore:"UserId" json:"-" xml:"-"`
 	LastModified time.Time `json:"-" xml:"-"`
-	Status int `json:"status" xml:"status"`
+	Status       int       `json:"status" xml:"status"`
 }
 
 type RealmApi struct {
@@ -36,9 +41,7 @@ type RealmApi struct {
 }
 
 func init() {
-    log.Printf("Realms: Register")
-	api := RealmApi{Path: "/realms"}
-	api.Register()
+	log.Printf("Realms: Register")
 }
 
 // Register the routes we require for this resource type.
@@ -47,7 +50,7 @@ func (api RealmApi) Register() {
 	ws := new(restful.WebService)
 
 	ws.
-		Path(api.Path).
+		Path(rootPath).
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 
@@ -100,38 +103,38 @@ func (api *RealmApi) create(r *restful.Request, w *restful.Response) {
 
 	// TODO: Should be ancestor to a federation.
 	// Set a user as our ancestor...this is done by querying for the key for the current user.
-/*	var ancestor *datastore.Key
-	q := datastore.NewQuery("users").
-		Filter("UserId =", user.Current(c).ID).
-		KeysOnly()
-	if keys, err := q.GetAll(c, nil); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	} else {
-		if keys == nil {
-			http.Error(w, "There is no user resource for this login account", http.StatusNotAcceptable)
+	/*	var ancestor *datastore.Key
+		q := datastore.NewQuery("users").
+			Filter("UserId =", user.Current(c).ID).
+			KeysOnly()
+		if keys, err := q.GetAll(c, nil); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
-		}
-		ancestor = keys[0]
-	}*/
+		} else {
+			if keys == nil {
+				http.Error(w, "There is no user resource for this login account", http.StatusNotAcceptable)
+				return
+			}
+			ancestor = keys[0]
+		}*/
 
 	// Store the realm.
-	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "realms", nil/*ancestor*/), realm)
+	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "realms", nil /*ancestor*/), realm)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// The resource Id.
-	realm.Id = k.Encode ()
+	realm.Id = k.Encode()
 
 	// Let them know the location of the newly created resource.
 	// TODO: Use a safe Url path append function.
-	w.AddHeader("Location", api.Path+"/"+k.Encode())
+	w.AddHeader("Location", rootPath+"/"+k.Encode())
 
 	// Provide a link for ease of API usage.
 	// TODO: This should be a fully qualified path.
-	realm.Link = api.Path+"/"+k.Encode()
+	realm.Link = rootPath + "/" + k.Encode()
 
 	// Return the resultant entity.
 	w.WriteHeader(http.StatusCreated)
@@ -170,11 +173,11 @@ func (api RealmApi) read(r *restful.Request, w *restful.Response) {
 	//}
 
 	// Set their Id.
-	realm.Id = k.Encode ()
+	realm.Id = k.Encode()
 
 	// Provide a link for ease of API usage.
 	// TODO: This should be a fully qualified path.
-	realm.Link = api.Path+"/"+k.Encode()
+	realm.Link = rootPath + "/" + k.Encode()
 
 	w.WriteEntity(realm)
 }

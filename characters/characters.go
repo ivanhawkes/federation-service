@@ -5,9 +5,13 @@ import (
 	"appengine/datastore"
 	"appengine/user"
 	"github.com/emicklei/go-restful"
+	"log"
 	"net/http"
 	"time"
-	"log"
+)
+
+const (
+	rootPath = "/characters"
 )
 
 // The various states for a character resource.
@@ -41,9 +45,7 @@ type CharacterApi struct {
 }
 
 func init() {
-    log.Printf("Characters: Register")
-	api := CharacterApi{Path: "/characters"}
-	api.Register()
+	log.Printf("Characters: Register")
 }
 
 // Register the routes we require for this resource type.
@@ -52,7 +54,7 @@ func (api CharacterApi) Register() {
 	ws := new(restful.WebService)
 
 	ws.
-		Path(api.Path).
+		Path(rootPath).
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 
@@ -115,11 +117,11 @@ func (api *CharacterApi) create(r *restful.Request, w *restful.Response) {
 
 	// Let them know the location of the newly created resource.
 	// TODO: Use a safe Url path append function.
-	w.AddHeader("Location", api.Path+"/"+k.Encode())
+	w.AddHeader("Location", rootPath+"/"+k.Encode())
 
 	// Provide a link for ease of API usage.
 	// TODO: This should be a fully qualified path.
-	character.Link = api.Path + "/" + k.Encode()
+	character.Link = rootPath + "/" + k.Encode()
 
 	// Return the resultant entity.
 	w.WriteHeader(http.StatusCreated)
@@ -162,7 +164,7 @@ func (api CharacterApi) read(r *restful.Request, w *restful.Response) {
 
 	// Provide a link for ease of API usage.
 	// TODO: This should be a fully qualified path.
-	character.Link = api.Path + "/" + k.Encode()
+	character.Link = rootPath + "/" + k.Encode()
 
 	w.WriteEntity(character)
 }

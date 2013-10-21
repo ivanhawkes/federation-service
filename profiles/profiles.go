@@ -5,9 +5,13 @@ import (
 	"appengine/datastore"
 	"appengine/user"
 	"github.com/emicklei/go-restful"
+	"log"
 	"net/http"
 	"time"
-	"log"
+)
+
+const (
+	rootPath = "/profiles"
 )
 
 type Profile struct {
@@ -25,9 +29,7 @@ type ProfileApi struct {
 }
 
 func init() {
-    log.Printf("Profiles: Register")
-	api := ProfileApi{Path: "/profiles"}
-	api.Register()
+	log.Printf("Profiles: Register")
 }
 
 // Register the routes we require for this resource type.
@@ -36,7 +38,7 @@ func (api ProfileApi) Register() {
 	ws := new(restful.WebService)
 
 	ws.
-		Path(api.Path).
+		Path(rootPath).
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 
@@ -114,7 +116,7 @@ func (api *ProfileApi) create(r *restful.Request, w *restful.Response) {
 
 	// Let them know the location of the newly created resource.
 	// TODO: Use a safe Url path append function.
-	w.AddHeader("Location", api.Path+"/"+k.Encode())
+	w.AddHeader("Location", rootPath+"/"+k.Encode())
 
 	// Return the resultant entity.
 	w.WriteHeader(http.StatusCreated)

@@ -5,9 +5,13 @@ import (
 	"appengine/datastore"
 	"appengine/user"
 	"github.com/emicklei/go-restful"
+	"log"
 	"net/http"
 	"time"
-	"log"
+)
+
+const (
+	rootPath = "/users"
 )
 
 // The various states for a user resource.
@@ -17,21 +21,22 @@ const (
 	StatusPermanentlyBanned
 	StatusPendingActivation
 	StatusDeletionPending
-	StatusDeleted)
+	StatusDeleted
+)
 
 type UserShallow struct {
-	Id string `datastore:"-" json:"id" xml:"id"`
+	Id        string `datastore:"-" json:"id" xml:"id"`
 	FirstName string `json:"first_name" xml:"first-name"`
-	LastName string `json:"last_name" xml:"last-name"`
+	LastName  string `json:"last_name" xml:"last-name"`
 	AvatarUrl string `json:"avatar_url" xml:"avatar-url"`
-	Link string `datastore:"-" json:"link" xml:"link"`
+	Link      string `datastore:"-" json:"link" xml:"link"`
 }
 
 type User struct {
 	UserShallow
-	UserId string `datastore:"UserId" json:"-" xml:"-"` // The external Id for the user who this represents. Comes from user authentication library.
+	UserId       string    `datastore:"UserId" json:"-" xml:"-"` // The external Id for the user who this represents. Comes from user authentication library.
 	LastModified time.Time `json:"-" xml:"-"`
-	Status int `json:"status" xml:"status"`
+	Status       int       `json:"status" xml:"status"`
 }
 
 type UserApi struct {
@@ -39,9 +44,7 @@ type UserApi struct {
 }
 
 func init() {
-    log.Printf("Users: Register")
-	api := UserApi{Path: "/users"}
-	api.Register()
+	log.Printf("Users: Register")
 }
 
 // Register the routes we require for this resource type.
@@ -50,7 +53,7 @@ func (api UserApi) Register() {
 	ws := new(restful.WebService)
 
 	ws.
-		Path(api.Path).
+		Path(rootPath).
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 
@@ -109,15 +112,15 @@ func (api *UserApi) create(r *restful.Request, w *restful.Response) {
 	}
 
 	// The resource Id.
-	u.Id = k.Encode ()
+	u.Id = k.Encode()
 
 	// Let them know the location of the newly created resource.
 	// TODO: Use a safe Url path append function.
-	w.AddHeader("Location", api.Path+"/"+k.Encode())
+	w.AddHeader("Location", rootPath+"/"+k.Encode())
 
 	// Provide a link for ease of API usage.
 	// TODO: This should be a fully qualified path.
-	u.Link = api.Path+"/"+k.Encode()
+	u.Link = rootPath + "/" + k.Encode()
 
 	// Return the resultant entity.
 	w.WriteHeader(http.StatusCreated)
@@ -156,11 +159,11 @@ func (api UserApi) read(r *restful.Request, w *restful.Response) {
 	//}
 
 	// Set their Id.
-	u.Id = k.Encode ()
+	u.Id = k.Encode()
 
 	// Provide a link for ease of API usage.
 	// TODO: This should be a fully qualified path.
-	u.Link = api.Path+"/"+k.Encode()
+	u.Link = rootPath + "/" + k.Encode()
 
 	w.WriteEntity(u)
 }

@@ -5,9 +5,13 @@ import (
 	"appengine/datastore"
 	"appengine/user"
 	"github.com/emicklei/go-restful"
+	"log"
 	"net/http"
 	"time"
-	"log"
+)
+
+const (
+	rootPath = "/factions"
 )
 
 // The various states for a faction resource.
@@ -16,19 +20,20 @@ const (
 	StatusDeactivated
 	StatusPendingActivation
 	StatusDeletionPending
-	StatusDeleted)
+	StatusDeleted
+)
 
 type FactionShallow struct {
-	Id string `datastore:"-" json:"id" xml:"id"`
+	Id   string `datastore:"-" json:"id" xml:"id"`
 	Name string `json:"name" xml:"name"`
 	Link string `datastore:"-" json:"link" xml:"link"`
 }
 
 type Faction struct {
 	FactionShallow
-	UserId string `datastore:"UserId" json:"-" xml:"-"` // Owner and by extension, leader. TODO: perhaps not require the leader to be this User.
+	UserId       string    `datastore:"UserId" json:"-" xml:"-"` // Owner and by extension, leader. TODO: perhaps not require the leader to be this User.
 	LastModified time.Time `json:"-" xml:"-"`
-	Status int `json:"status" xml:"status"`
+	Status       int       `json:"status" xml:"status"`
 }
 
 type FactionApi struct {
@@ -36,9 +41,7 @@ type FactionApi struct {
 }
 
 func init() {
-    log.Printf("Factions: Register")
-	api := FactionApi{Path: "/factions"}
-	api.Register()
+	log.Printf("Factions: Register")
 }
 
 // Register the routes we require for this resource type.
@@ -47,7 +50,7 @@ func (api FactionApi) Register() {
 	ws := new(restful.WebService)
 
 	ws.
-		Path(api.Path).
+		Path(rootPath).
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 
@@ -122,15 +125,15 @@ func (api *FactionApi) create(r *restful.Request, w *restful.Response) {
 	}
 
 	// The resource Id.
-	f.Id = k.Encode ()
+	f.Id = k.Encode()
 
 	// Let them know the location of the newly created resource.
 	// TODO: Use a safe Url path append function.
-	w.AddHeader("Location", api.Path+"/"+k.Encode())
+	w.AddHeader("Location", rootPath+"/"+k.Encode())
 
 	// Provide a link for ease of API usage.
 	// TODO: This should be a fully qualified path.
-	f.Link = api.Path+"/"+k.Encode()
+	f.Link = rootPath + "/" + k.Encode()
 
 	// Return the resultant entity.
 	w.WriteHeader(http.StatusCreated)
@@ -169,11 +172,11 @@ func (api FactionApi) read(r *restful.Request, w *restful.Response) {
 	//}
 
 	// Set their Id.
-	f.Id = k.Encode ()
+	f.Id = k.Encode()
 
 	// Provide a link for ease of API usage.
 	// TODO: This should be a fully qualified path.
-	f.Link = api.Path+"/"+k.Encode()
+	f.Link = rootPath + "/" + k.Encode()
 
 	w.WriteEntity(f)
 }
