@@ -7,6 +7,7 @@ import (
 	"github.com/emicklei/go-restful"
 	"net/http"
 	"time"
+	"log"
 )
 
 // The various states for a character resource.
@@ -40,13 +41,14 @@ type CharacterApi struct {
 }
 
 func init() {
+    log.Printf("Characters: Register")
 	api := CharacterApi{Path: "/characters"}
-	api.register()
+	api.Register()
 }
 
 // Register the routes we require for this resource type.
 //
-func (api CharacterApi) register() {
+func (api CharacterApi) Register() {
 	ws := new(restful.WebService)
 
 	ws.

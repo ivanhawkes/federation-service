@@ -7,6 +7,7 @@ import (
 	"github.com/emicklei/go-restful"
 	"net/http"
 	"time"
+	"log"
 )
 
 // The various states for a faction resource.
@@ -35,13 +36,14 @@ type FactionApi struct {
 }
 
 func init() {
+    log.Printf("Factions: Register")
 	api := FactionApi{Path: "/factions"}
-	api.register()
+	api.Register()
 }
 
 // Register the routes we require for this resource type.
 //
-func (api FactionApi) register() {
+func (api FactionApi) Register() {
 	ws := new(restful.WebService)
 
 	ws.

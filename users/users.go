@@ -7,6 +7,7 @@ import (
 	"github.com/emicklei/go-restful"
 	"net/http"
 	"time"
+	"log"
 )
 
 // The various states for a user resource.
@@ -38,13 +39,14 @@ type UserApi struct {
 }
 
 func init() {
+    log.Printf("Users: Register")
 	api := UserApi{Path: "/users"}
-	api.register()
+	api.Register()
 }
 
 // Register the routes we require for this resource type.
 //
-func (api UserApi) register() {
+func (api UserApi) Register() {
 	ws := new(restful.WebService)
 
 	ws.

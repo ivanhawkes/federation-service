@@ -7,6 +7,7 @@ import (
 	"github.com/emicklei/go-restful"
 	"net/http"
 	"time"
+	"log"
 )
 
 type Profile struct {
@@ -24,13 +25,14 @@ type ProfileApi struct {
 }
 
 func init() {
+    log.Printf("Profiles: Register")
 	api := ProfileApi{Path: "/profiles"}
-	api.register()
+	api.Register()
 }
 
 // Register the routes we require for this resource type.
 //
-func (api ProfileApi) register() {
+func (api ProfileApi) Register() {
 	ws := new(restful.WebService)
 
 	ws.

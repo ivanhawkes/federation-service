@@ -7,6 +7,7 @@ import (
 	"github.com/emicklei/go-restful"
 	"net/http"
 	"time"
+	"log"
 )
 
 // The various states for a realm resource.
@@ -35,13 +36,14 @@ type RealmApi struct {
 }
 
 func init() {
+    log.Printf("Realms: Register")
 	api := RealmApi{Path: "/realms"}
-	api.register()
+	api.Register()
 }
 
 // Register the routes we require for this resource type.
 //
-func (api RealmApi) register() {
+func (api RealmApi) Register() {
 	ws := new(restful.WebService)
 
 	ws.

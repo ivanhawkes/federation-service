@@ -7,6 +7,7 @@ import (
 	"github.com/emicklei/go-restful"
 	"net/http"
 	"time"
+	"log"
 )
 
 // The various states for a zone resource.
@@ -35,13 +36,14 @@ type ZoneApi struct {
 }
 
 func init() {
-	api := ZoneApi{Path: "/zones"}
-	api.register()
+    log.Printf("Zones: Register")
+    api := ZoneApi{Path: "/zones"}
+	api.Register()
 }
 
 // Register the routes we require for this resource type.
 //
-func (api ZoneApi) register() {
+func (api ZoneApi) Register() {
 	ws := new(restful.WebService)
 
 	ws.

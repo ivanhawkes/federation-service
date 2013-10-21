@@ -7,6 +7,7 @@ import (
 	"github.com/emicklei/go-restful"
 	"net/http"
 	"time"
+	"log"
 )
 
 // The various states for a federation resource.
@@ -35,13 +36,14 @@ type FederationApi struct {
 }
 
 func init() {
+    log.Printf("Federations: Register")
 	api := FederationApi{Path: "/federations"}
-	api.register()
+	api.Register()
 }
 
 // Register the routes we require for this resource type.
 //
-func (api FederationApi) register() {
+func (api FederationApi) Register() {
 	ws := new(restful.WebService)
 
 	ws.
