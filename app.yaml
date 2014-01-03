@@ -1,4 +1,4 @@
-application: federation-services
+application: ss-federation
 version: 1
 runtime: go
 api_version: go1
@@ -33,8 +33,16 @@ handlers:
 - url: /_ah/spi/.*
   script: _go_app
 
+# Server API
+- url: /server/.*
+  script: _go_app
+
+# Client API
+- url: /client/.*
+  script: _go_app
+
 # Everything else
 - url: /.*
   script: _go_app
-  login: required
+#  login: required
 
