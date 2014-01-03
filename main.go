@@ -3,10 +3,10 @@ package main
 import (
 	"characters"
 	"factions"
+	"loottable"
 	"realms"
 	"users"
 	"zones"
-	"loottable"
 )
 
 func init() {
