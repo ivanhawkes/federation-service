@@ -7,9 +7,8 @@ import (
 	"log"
 	"net/http"
 	"time"
-	"fmt"
-	"io"
-	"bytes"
+	//	"io"
+	//	"bytes"
 )
 
 const (
@@ -26,7 +25,7 @@ const (
 )
 
 type LootShallow struct {
-	Id   string `datastore:"-" json:"id" xml:"id"`
+	Id   string `json:"id" xml:"id"`
 	Name string `json:"name" xml:"name"`
 	Link string `datastore:"-" json:"link" xml:"link"`
 }
@@ -46,11 +45,11 @@ type LootTable struct {
 }
 
 type LootSummary struct {
-	Entry []LootShallow `json:"entry" xml:"entry"`
+	LootTables []LootShallow `json:"loot_tables" xml:"loot-tables"`
 }
 
 type LootQuery struct {
-	Entry []LootTable `json:"entry" xml:"entry"`
+	LootTables []LootTable `json:"loot_tables" xml:"loot-tables"`
 }
 
 type LootTableApi struct {
@@ -98,7 +97,8 @@ func (api LootTableApi) Register() {
 	ws.Route(ws.GET("/summary").To(api.summary).
 		// Swagger documentation.
 		Doc("returns a summary of all the loot tables").
-		Writes(LootSummary{}))
+		//Writes(LootSummary{}))
+		Writes([]LootShallow{}))
 
 	ws.Route(ws.GET("/all").To(api.all).
 		// Swagger documentation.
@@ -310,42 +310,38 @@ func (api *LootTableApi) delete(r *restful.Request, w *restful.Response) {
 //
 func (api LootTableApi) summary(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
+	q := datastore.NewQuery("loottable").
+		Project("Name")
+	var summary LootSummary
+	if _, err := q.GetAll(c, &summary.LootTables); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	w.WriteEntity("summary of query")
+	for i, _ := range summary.LootTables {
+    	summary.LootTables[i].Id = "ss"
+    	summary.LootTables[i].Link = "sssssss"
+	}
 
-    q := datastore.NewQuery("loottable").
-    	Project("Name")
-    b := new(bytes.Buffer)
-    for t := q.Run(c); ; {
-        var entry LootShallow
-        key, err := t.Next(&entry)
-        if err == datastore.Done {
-                break
-        }
-        if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
-        }
-		
-        // Fixups for the fields.
-        entry.Id = key.Encode()
-		entry.Link = rootPath + "/" + key.Encode()
-
-        fmt.Fprintf(b, "Key=%v\nWidget=%#v\n\n", key, entry)
-    }
-    w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-    io.Copy(w, b)
-
-	// w.WriteEntity(loottable)
+	w.WriteEntity(summary)
 }
 
 // Retrieve a summary of all the loot tables.
 //
 func (api LootTableApi) all(r *restful.Request, w *restful.Response) {
-	//c := appengine.NewContext(r.Request)
+	c := appengine.NewContext(r.Request)
+	q := datastore.NewQuery("loottable").
+		Project("Name")
+	var lootQuery LootQuery
+	if _, err := q.GetAll(c, &lootQuery.LootTables); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	w.WriteEntity("give it all")
+	// for i, _ := range lootQuery.LootTables {
+ //    	lootQuery.LootTables[i].Id = "ss"
+ //    	lootQuery.LootTables[i].Link = "sssssss"
+	// }
 
-
-	// w.WriteEntity(loottable)
+	w.WriteEntity(lootQuery)
 }
