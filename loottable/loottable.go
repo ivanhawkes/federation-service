@@ -28,10 +28,17 @@ type LootShallow struct {
 	Link string `datastore:"-" json:"link" xml:"link"`
 }
 
+type LootEntry struct {
+	ItemId   int64 `datastore:"ItemId" json:"item_id" xml:"item-id"`
+	Probability   float32 `datastore:"Probability" json:"probability" xml:"probability"`
+	Quantity   int16 `datastore:"Quantity" json:"quantity" xml:"quantity"`
+}
+
 type Loottable struct {
 	LootShallow
 	LastModified time.Time `json:"-" xml:"-"`
 	Status       int       `json:"status" xml:"status"`
+	Probabilities [] LootEntry `json:"probabilities" xml:"probabilities"`
 }
 
 type LoottableApi struct {

@@ -35,9 +35,9 @@ type CharacterShallow struct {
 
 type Character struct {
 	CharacterShallow
-	UserId       string    `datastore:"UserId" json:"-" xml:"-"`
 	LastModified time.Time `json:"-" xml:"-"`
 	Status       int       `json:"status" xml:"status"`
+	UserId       string    `datastore:"UserId" json:"-" xml:"-"`
 }
 
 type CharacterApi struct {
