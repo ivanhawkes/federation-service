@@ -7,10 +7,13 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"fmt"
+	"io"
+	"bytes"
 )
 
 const (
-	rootPath = "/loottable"
+	rootPath = "/server/loottable"
 )
 
 // The various states for a loottable resource.
@@ -34,7 +37,7 @@ type LootEntry struct {
 	Quantity    int16   `datastore:"Quantity" json:"quantity" xml:"quantity"`
 }
 
-type Loottable struct {
+type LootTable struct {
 	LootShallow
 	LastModified  time.Time   `json:"-" xml:"-"`
 	Status        int         `json:"status" xml:"status"`
@@ -42,17 +45,25 @@ type Loottable struct {
 	AllowPreload  bool        `json:"allow_preload" xml:"allow-preload"`
 }
 
-type LoottableApi struct {
+type LootSummary struct {
+	Entry []LootShallow `json:"entry" xml:"entry"`
+}
+
+type LootQuery struct {
+	Entry []LootTable `json:"entry" xml:"entry"`
+}
+
+type LootTableApi struct {
 	Path string
 }
 
 func init() {
-	log.Printf("Loottable: Register")
+	log.Printf("LootTable: Register")
 }
 
 // Register the routes we require for this resource type.
 //
-func (api LoottableApi) Register() {
+func (api LootTableApi) Register() {
 	ws := new(restful.WebService)
 
 	ws.
@@ -62,38 +73,48 @@ func (api LoottableApi) Register() {
 
 	ws.Route(ws.POST("").To(api.create).
 		// Swagger documentation.
-		Doc("create a new loottable").
-		Param(ws.BodyParameter("Loottable", "representation of a loottable").DataType("loottable.Loottable")).
-		Reads(Loottable{}))
+		Doc("create a new loot table").
+		Param(ws.BodyParameter("LootTable", "representation of a loottable").DataType("loottable.LootTable")).
+		Reads(LootTable{}))
 
 	ws.Route(ws.GET("/{loottable-id}").To(api.read).
 		// Swagger documentation.
-		Doc("read a loottable").
+		Doc("read a loot table").
 		Param(ws.PathParameter("loottable-id", "identifier for a loottable").DataType("string")).
-		Writes(Loottable{}))
+		Writes(LootTable{}))
 
 	ws.Route(ws.PUT("/{loottable-id}").To(api.update).
 		// Swagger documentation.
-		Doc("update an existing loottable").
+		Doc("update an existing loot table").
 		Param(ws.PathParameter("loottable-id", "identifier for a loottable").DataType("string")).
-		Param(ws.BodyParameter("Loottable", "representation of a loottable").DataType("loottable.Loottable")).
-		Reads(Loottable{}))
+		Param(ws.BodyParameter("LootTable", "representation of a loottable").DataType("loottable.LootTable")).
+		Reads(LootTable{}))
 
 	ws.Route(ws.DELETE("/{loottable-id}").To(api.delete).
 		// Swagger documentation.
-		Doc("delete a loottable").
+		Doc("delete a loot table").
 		Param(ws.PathParameter("loottable-id", "identifier for a loottable").DataType("string")))
+
+	ws.Route(ws.GET("/summary").To(api.summary).
+		// Swagger documentation.
+		Doc("returns a summary of all the loot tables").
+		Writes(LootSummary{}))
+
+	ws.Route(ws.GET("/all").To(api.all).
+		// Swagger documentation.
+		Doc("returns a complete listing of all the loot tables").
+		Writes(LootQuery{}))
 
 	restful.Add(ws)
 }
 
 // Create a new resource.
 //
-func (api *LoottableApi) create(r *restful.Request, w *restful.Response) {
+func (api *LootTableApi) create(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Marshall the entity from the request into a struct.
-	loottable := new(Loottable)
+	loottable := new(LootTable)
 	err := r.ReadEntity(&loottable)
 	if err != nil {
 		w.WriteError(http.StatusNotAcceptable, err)
@@ -149,7 +170,7 @@ func (api *LoottableApi) create(r *restful.Request, w *restful.Response) {
 
 // Read the resource.
 //
-func (api LoottableApi) read(r *restful.Request, w *restful.Response) {
+func (api LootTableApi) read(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Decode the request parameter to determine the key for the entity.
@@ -160,7 +181,7 @@ func (api LoottableApi) read(r *restful.Request, w *restful.Response) {
 	}
 
 	// Retrieve the entity from the datastore.
-	loottable := Loottable{}
+	loottable := LootTable{}
 	if err := datastore.Get(c, k, &loottable); err != nil {
 		if err.Error() == "datastore: no such entity" {
 			http.Error(w, err.Error(), http.StatusNotFound)
@@ -190,7 +211,7 @@ func (api LoottableApi) read(r *restful.Request, w *restful.Response) {
 
 // Update the resource.
 //
-func (api *LoottableApi) update(r *restful.Request, w *restful.Response) {
+func (api *LootTableApi) update(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Decode the request parameter to determine the key for the entity.
@@ -201,7 +222,7 @@ func (api *LoottableApi) update(r *restful.Request, w *restful.Response) {
 	}
 
 	// Marshall the entity from the request into a struct.
-	loottable := new(Loottable)
+	loottable := new(LootTable)
 	err = r.ReadEntity(&loottable)
 	if err != nil {
 		w.WriteError(http.StatusNotAcceptable, err)
@@ -209,7 +230,7 @@ func (api *LoottableApi) update(r *restful.Request, w *restful.Response) {
 	}
 
 	// Retrieve the old entity from the datastore.
-	old := Loottable{}
+	old := LootTable{}
 	if err := datastore.Get(c, k, &old); err != nil {
 		if err.Error() == "datastore: no such entity" {
 			http.Error(w, err.Error(), http.StatusNotFound)
@@ -247,7 +268,7 @@ func (api *LoottableApi) update(r *restful.Request, w *restful.Response) {
 
 // Delete the resource.
 //
-func (api *LoottableApi) delete(r *restful.Request, w *restful.Response) {
+func (api *LootTableApi) delete(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Decode the request parameter to determine the key for the entity.
@@ -258,7 +279,7 @@ func (api *LoottableApi) delete(r *restful.Request, w *restful.Response) {
 	}
 
 	// Retrieve the old entity from the datastore.
-	old := Loottable{}
+	old := LootTable{}
 	if err := datastore.Get(c, k, &old); err != nil {
 		if err.Error() == "datastore: no such entity" {
 			http.Error(w, err.Error(), http.StatusNotFound)
@@ -283,4 +304,48 @@ func (api *LoottableApi) delete(r *restful.Request, w *restful.Response) {
 
 	// Success notification.
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// Retrieve a summary of all the loot tables.
+//
+func (api LootTableApi) summary(r *restful.Request, w *restful.Response) {
+	c := appengine.NewContext(r.Request)
+
+	w.WriteEntity("summary of query")
+
+    q := datastore.NewQuery("loottable").
+    	Project("Name")
+    b := new(bytes.Buffer)
+    for t := q.Run(c); ; {
+        var entry LootShallow
+        key, err := t.Next(&entry)
+        if err == datastore.Done {
+                break
+        }
+        if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+		
+        // Fixups for the fields.
+        entry.Id = key.Encode()
+		entry.Link = rootPath + "/" + key.Encode()
+
+        fmt.Fprintf(b, "Key=%v\nWidget=%#v\n\n", key, entry)
+    }
+    w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+    io.Copy(w, b)
+
+	// w.WriteEntity(loottable)
+}
+
+// Retrieve a summary of all the loot tables.
+//
+func (api LootTableApi) all(r *restful.Request, w *restful.Response) {
+	//c := appengine.NewContext(r.Request)
+
+	w.WriteEntity("give it all")
+
+
+	// w.WriteEntity(loottable)
 }
