@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"strconv"
 	//	"io"
 	//	"bytes"
 )
@@ -25,9 +26,10 @@ const (
 )
 
 type LootShallow struct {
-	Id   string `json:"id" xml:"id"`
-	Name string `json:"name" xml:"name"`
+	ID   string `datastore:"ID" json:"-" xml:"-"`
+	Id   int64 `datastore:"-" json:"id" xml:"id"`
 	Link string `datastore:"-" json:"link" xml:"link"`
+	Name string `json:"name" xml:"name"`
 }
 
 type LootEntry struct {
@@ -40,8 +42,8 @@ type LootTable struct {
 	LootShallow
 	LastModified  time.Time   `json:"-" xml:"-"`
 	Status        int         `json:"status" xml:"status"`
-	Probabilities []LootEntry `json:"probabilities" xml:"probabilities"`
 	AllowPreload  bool        `json:"allow_preload" xml:"allow-preload"`
+	Probabilities []LootEntry `json:"probabilities" xml:"probabilities"`
 }
 
 type LootSummary struct {
@@ -79,20 +81,20 @@ func (api LootTableApi) Register() {
 	ws.Route(ws.GET("/{loottable-id}").To(api.read).
 		// Swagger documentation.
 		Doc("read a loot table").
-		Param(ws.PathParameter("loottable-id", "identifier for a loottable").DataType("string")).
+		Param(ws.PathParameter("loottable-id", "identifier for a loottable").DataType("int64")).
 		Writes(LootTable{}))
 
 	ws.Route(ws.PUT("/{loottable-id}").To(api.update).
 		// Swagger documentation.
 		Doc("update an existing loot table").
-		Param(ws.PathParameter("loottable-id", "identifier for a loottable").DataType("string")).
+		Param(ws.PathParameter("loottable-id", "identifier for a loottable").DataType("int64")).
 		Param(ws.BodyParameter("LootTable", "representation of a loottable").DataType("loottable.LootTable")).
 		Reads(LootTable{}))
 
 	ws.Route(ws.DELETE("/{loottable-id}").To(api.delete).
 		// Swagger documentation.
 		Doc("delete a loot table").
-		Param(ws.PathParameter("loottable-id", "identifier for a loottable").DataType("string")))
+		Param(ws.PathParameter("loottable-id", "identifier for a loottable").DataType("int64")))
 
 	ws.Route(ws.GET("/summary").To(api.summary).
 		// Swagger documentation.
@@ -153,7 +155,7 @@ func (api *LootTableApi) create(r *restful.Request, w *restful.Response) {
 	}
 
 	// The resource Id.
-	loottable.Id = k.Encode()
+	loottable.Id = k.IntID()
 
 	// Let them know the location of the newly created resource.
 	// TODO: Use a safe Url path append function.
@@ -173,12 +175,13 @@ func (api *LootTableApi) create(r *restful.Request, w *restful.Response) {
 func (api LootTableApi) read(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
-	// Decode the request parameter to determine the key for the entity.
-	k, err := datastore.DecodeKey(r.PathParameter("loottable-id"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+  	// Grab the Id from the request parameters and turn it into a valid key.
+  	id, err := strconv.ParseInt(r.PathParameter("loottable-id"), 10, 64)
+    if err != nil {
+		 	http.Error(w, err.Error(), http.StatusBadRequest)
+           return
+        }
+	k := datastore.NewKey(c, "loottable", "", id, nil)
 
 	// Retrieve the entity from the datastore.
 	loottable := LootTable{}
@@ -194,13 +197,13 @@ func (api LootTableApi) read(r *restful.Request, w *restful.Response) {
 	// Check we own the resource before allowing them to view it.
 	// Optionally, return a 404 instead to help prevent guessing ids.
 	// TODO: Allow admins access.
-	//if loottable.UserId != user.Current(c).ID {
+	//if loottable.UserId != user.Current(c).Id {
 	//	http.Error(w, "You do not have access to this resource", http.StatusForbidden)
 	//	return
 	//}
 
 	// Set their Id.
-	loottable.Id = k.Encode()
+	loottable.Id = k.IntID()
 
 	// Provide a link for ease of API usage.
 	// TODO: This should be a fully qualified path.
@@ -214,12 +217,13 @@ func (api LootTableApi) read(r *restful.Request, w *restful.Response) {
 func (api *LootTableApi) update(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
-	// Decode the request parameter to determine the key for the entity.
-	k, err := datastore.DecodeKey(r.PathParameter("loottable-id"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+  	// Grab the Id from the request parameters and turn it into a valid key.
+  	id, err := strconv.ParseInt(r.PathParameter("loottable-id"), 10, 64)
+    if err != nil {
+		 	http.Error(w, err.Error(), http.StatusBadRequest)
+           return
+        }
+	k := datastore.NewKey(c, "loottable", "", id, nil)
 
 	// Marshall the entity from the request into a struct.
 	loottable := new(LootTable)
@@ -271,12 +275,14 @@ func (api *LootTableApi) update(r *restful.Request, w *restful.Response) {
 func (api *LootTableApi) delete(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
-	// Decode the request parameter to determine the key for the entity.
-	k, err := datastore.DecodeKey(r.PathParameter("loottable-id"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+  	// Grab the Id from the request parameters and turn it into a valid key.
+  	id, err := strconv.ParseInt(r.PathParameter("loottable-id"), 10, 64)
+    if err != nil {
+		 	http.Error(w, err.Error(), http.StatusBadRequest)
+           return
+        }
+	k := datastore.NewKey(c, "loottable", "", id, nil)
+
 
 	// Retrieve the old entity from the datastore.
 	old := LootTable{}
@@ -313,15 +319,20 @@ func (api LootTableApi) summary(r *restful.Request, w *restful.Response) {
 	q := datastore.NewQuery("loottable").
 		Project("Name")
 	var summary LootSummary
-	if _, err := q.GetAll(c, &summary.LootTables); err != nil {
+	if keys, err := q.GetAll(c, &summary.LootTables); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	} else {
+		for i, key := range keys {
+			summary.LootTables[i].Id = key.IntID()
+			summary.LootTables[i].Link = rootPath + "/" + key.Encode()
+		}
 	}
 
-	for i, _ := range summary.LootTables {
-    	summary.LootTables[i].Id = "ss"
-    	summary.LootTables[i].Link = "sssssss"
-	}
+	// for i, _ := range summary.LootTables {
+	//    	summary.LootTables[i].ID = keys[i].IntID()
+	//    	summary.LootTables[i].Link = "todotodo"
+	// }
 
 	w.WriteEntity(summary)
 }
@@ -330,18 +341,17 @@ func (api LootTableApi) summary(r *restful.Request, w *restful.Response) {
 //
 func (api LootTableApi) all(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
-	q := datastore.NewQuery("loottable").
-		Project("Name")
+	q := datastore.NewQuery("loottable")
 	var lootQuery LootQuery
-	if _, err := q.GetAll(c, &lootQuery.LootTables); err != nil {
+	if keys, err := q.GetAll(c, &lootQuery.LootTables); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	} else {
+		for i, key := range keys {
+			lootQuery.LootTables[i].Id = key.IntID()
+			lootQuery.LootTables[i].Link = rootPath + "/" + key.Encode()
+		}
 	}
-
-	// for i, _ := range lootQuery.LootTables {
- //    	lootQuery.LootTables[i].Id = "ss"
- //    	lootQuery.LootTables[i].Link = "sssssss"
-	// }
 
 	w.WriteEntity(lootQuery)
 }

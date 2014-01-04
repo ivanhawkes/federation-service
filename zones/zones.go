@@ -25,8 +25,8 @@ const (
 
 type ZoneShallow struct {
 	Id   string `datastore:"-" json:"id" xml:"id"`
-	Name string `json:"name" xml:"name"`
 	Link string `datastore:"-" json:"link" xml:"link"`
+	Name string `json:"name" xml:"name"`
 }
 
 type Zone struct {

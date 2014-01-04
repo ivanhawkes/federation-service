@@ -26,10 +26,10 @@ const (
 
 type UserShallow struct {
 	Id        string `datastore:"-" json:"id" xml:"id"`
+	Link      string `datastore:"-" json:"link" xml:"link"`
 	FirstName string `json:"first_name" xml:"first-name"`
 	LastName  string `json:"last_name" xml:"last-name"`
 	AvatarUrl string `json:"avatar_url" xml:"avatar-url"`
-	Link      string `datastore:"-" json:"link" xml:"link"`
 }
 
 type User struct {

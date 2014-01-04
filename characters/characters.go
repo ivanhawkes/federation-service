@@ -26,10 +26,10 @@ const (
 
 type CharacterShallow struct {
 	Id        string `datastore:"-" json:"id" xml:"id"`
+	Link      string `datastore:"-" json:"link" xml:"link"`
 	FirstName string `json:"first_name" xml:"first-name"`
 	NickName  string `json:"nick_name" xml:"nick-name"`
 	LastName  string `json:"last_name" xml:"last-name"`
-	Link      string `datastore:"-" json:"link" xml:"link"`
 	FactionId int64  `datastore:"FactionId" json:"faction_id" xml:"faction-id"`
 }
 
