@@ -183,6 +183,8 @@ func (api *LootTableApi) post(r *restful.Request, w *restful.Response) {
 
 	// Set the headers.
 	w.WriteHeader(http.StatusCreated)
+	w.AddHeader(restful.HEADER_LastModified, loottable.LastModified.String())
+	w.AddHeader("ETag", strconv.Itoa(loottable.Version))
 
 	// Output the response body.
 	w.WriteEntity(loottable)
