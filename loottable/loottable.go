@@ -32,7 +32,7 @@ type Link struct {
 }
 
 type LootShallow struct {
-	Id           string    `datastore:"-" json:"id" xml:"id"`
+	Key          string    `datastore:"-" json:"key" xml:"key"`
 	LastModified time.Time `json:"last_modified" xml:"last-modified"`
 	Version      int       `json:"version" xml:"version"`
 	Status       int       `json:"status" xml:"status"`
@@ -170,8 +170,8 @@ func (api *LootTableApi) post(r *restful.Request, w *restful.Response) {
 		return
 	}
 
-	// The resource Id.
-	loottable.Id = k.Encode()
+	// The resource Key.
+	loottable.Key = k.Encode()
 
 	// Let them know the location of the newly created resource.
 	// TODO: Use a safe Url path append function.
@@ -214,8 +214,8 @@ func (api LootTableApi) get(r *restful.Request, w *restful.Response) {
 			return
 		}
 
-		// Set their Id.
-		loottable.Id = k.Encode()
+		// Set their Key.
+		loottable.Key = k.Encode()
 
 		// Provide a link for ease of API usage.
 		loottable.Link.Rel = "self"
@@ -254,8 +254,8 @@ func (api LootTableApi) head(r *restful.Request, w *restful.Response) {
 			return
 		}
 
-		// Set their Id.
-		loottable.Id = k.Encode()
+		// Set their Key.
+		loottable.Key = k.Encode()
 
 		// Provide a link for ease of API usage.
 		loottable.Link.Rel = "self"
@@ -366,35 +366,71 @@ func (api *LootTableApi) delete(r *restful.Request, w *restful.Response) {
 //
 func (api LootTableApi) summary(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
-	q := datastore.NewQuery(kind).
-		Project("LastModified", "Version", "Status", "Name")
+
+	var q *datastore.Query
 	var result LootSummary
+
+	// Check if they want to limit the query using a modified since date.
+	if ifModifiedSince := r.HeaderParameter("If-Modified-Since"); ifModifiedSince == "" {
+		q = datastore.NewQuery(kind).
+			Project("LastModified", "Version", "Status", "Name")
+	} else {
+		if t, err := time.Parse(time.RFC3339Nano, ifModifiedSince); err != nil {
+			w.AddHeader("Content-Type", "text/plain")
+			w.WriteErrorString(http.StatusNotAcceptable, err.Error())
+			return
+		} else {
+			q = datastore.NewQuery(kind).
+				Project("LastModified", "Version", "Status", "Name").
+				Filter("LastModified >=", t)
+		}
+	}
+
 	if keys, err := q.GetAll(c, &result.LootTables); err != nil {
 		w.AddHeader("Content-Type", "text/plain")
 		w.WriteErrorString(http.StatusInternalServerError, err.Error())
 		return
 	} else {
 		for i, k := range keys {
+			result.LootTables[i].Key = k.Encode()
 			result.LootTables[i].Link.Rel = "self"
 			result.LootTables[i].Link.Href = rootPath + "/" + k.Encode()
 		}
 	}
 
 	w.WriteEntity(result)
+
 }
 
 // Retrieve a summary of all the loot tables.
 //
 func (api LootTableApi) all(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
-	q := datastore.NewQuery(kind)
+
 	var result LootQuery
+	var q *datastore.Query
+
+	// Check if they want to limit the query using a modified since date.
+	if ifModifiedSince := r.HeaderParameter("If-Modified-Since"); ifModifiedSince == "" {
+		q = datastore.NewQuery(kind)
+	} else {
+		if t, err := time.Parse(time.RFC3339Nano, ifModifiedSince); err != nil {
+			w.AddHeader("Content-Type", "text/plain")
+			w.WriteErrorString(http.StatusNotAcceptable, err.Error())
+			return
+		} else {
+			q = datastore.NewQuery(kind).
+				Filter("LastModified >=", t)
+		}
+	}
+
 	if keys, err := q.GetAll(c, &result.LootTables); err != nil {
 		w.AddHeader("Content-Type", "text/plain")
 		w.WriteErrorString(http.StatusInternalServerError, err.Error())
 		return
 	} else {
 		for i, k := range keys {
+			result.LootTables[i].Key = k.Encode()
 			result.LootTables[i].Link.Rel = "self"
 			result.LootTables[i].Link.Href = rootPath + "/" + k.Encode()
 		}
