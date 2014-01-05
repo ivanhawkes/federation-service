@@ -11,16 +11,16 @@ import (
 )
 
 func init() {
-	log.Printf("Registering " + kind + " server services")
+	log.Printf("Registering " + kind + " shard services")
 }
 
 // Register the routes we require for this resource type.
 //
-func (api ResourceApi) RegisterServer() {
+func (api ResourceApi) RegisterShard() {
 	ws := new(restful.WebService)
 
 	ws.
-		Path(serverRootPath).
+		Path(shardRootPath).
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 
@@ -77,11 +77,11 @@ func (api ResourceApi) get(r *restful.Request, w *restful.Response) {
 
 		// Provide a link for ease of API usage.
 		resource.Link.Rel = "self"
-		resource.Link.Href = serverRootPath + "/" + k.Encode()
+		resource.Link.Href = shardRootPath + "/" + k.Encode()
 
 		// Set the headers.
 		w.AddHeader(restful.HEADER_LastModified, resource.LastModified.String())
-		w.AddHeader("ETag", strconv.Itoa(resource.Version))
+		w.AddHeader("ETag", strconv.Itoa(resource.Revision))
 
 		// Output the response body.
 		w.WriteEntity(resource)
@@ -117,11 +117,11 @@ func (api ResourceApi) head(r *restful.Request, w *restful.Response) {
 
 		// Provide a link for ease of API usage.
 		resource.Link.Rel = "self"
-		resource.Link.Href = serverRootPath + "/" + k.Encode()
+		resource.Link.Href = shardRootPath + "/" + k.Encode()
 
 		// Only return the headers.
 		w.AddHeader(restful.HEADER_LastModified, resource.LastModified.String())
-		w.AddHeader("ETag", strconv.Itoa(resource.Version))
+		w.AddHeader("ETag", strconv.Itoa(resource.Revision))
 
 		// No response body required for this verb.
 		w.WriteHeader(http.StatusNoContent)
@@ -139,7 +139,7 @@ func (api ResourceApi) listSummary(r *restful.Request, w *restful.Response) {
 	// Check if they want to limit the query using a modified since date.
 	if ifModifiedSince := r.HeaderParameter("If-Modified-Since"); ifModifiedSince == "" {
 		q = datastore.NewQuery(kind).
-			Project("LastModified", "Version", "Status", "Name")
+			Project("LastModified", "Revision", "Status", "Name")
 	} else {
 		if t, err := time.Parse(time.RFC3339Nano, ifModifiedSince); err != nil {
 			w.AddHeader("Content-Type", "text/plain")
@@ -147,7 +147,7 @@ func (api ResourceApi) listSummary(r *restful.Request, w *restful.Response) {
 			return
 		} else {
 			q = datastore.NewQuery(kind).
-				Project("LastModified", "Version", "Status", "Name").
+				Project("LastModified", "Revision", "Status", "Name").
 				Filter("LastModified >=", t)
 		}
 	}
@@ -160,7 +160,7 @@ func (api ResourceApi) listSummary(r *restful.Request, w *restful.Response) {
 		for i, k := range keys {
 			result.Entry[i].Key = k.Encode()
 			result.Entry[i].Link.Rel = "self"
-			result.Entry[i].Link.Href = serverRootPath + "/" + k.Encode()
+			result.Entry[i].Link.Href = shardRootPath + "/" + k.Encode()
 		}
 	}
 
@@ -198,7 +198,7 @@ func (api ResourceApi) listAll(r *restful.Request, w *restful.Response) {
 		for i, k := range keys {
 			result.Entry[i].Key = k.Encode()
 			result.Entry[i].Link.Rel = "self"
-			result.Entry[i].Link.Href = serverRootPath + "/" + k.Encode()
+			result.Entry[i].Link.Href = shardRootPath + "/" + k.Encode()
 		}
 	}
 

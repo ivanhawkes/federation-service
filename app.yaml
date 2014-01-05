@@ -33,13 +33,14 @@ handlers:
 - url: /_ah/spi/.*
   script: _go_app
 
-# Server API
-- url: /server/.*
+# Shard API
+- url: /shard/.*
   script: _go_app
 
 # Client API
-- url: /client/.*
+- url: /my/.*
   script: _go_app
+  login: required
 
 # Everything else
 - url: /.*

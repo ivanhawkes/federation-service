@@ -11,8 +11,8 @@ import (
 const (
 	kind           = "loottable"
 	adminRootPath  = "/admin/" + kind
-	serverRootPath = "/server/" + kind
-	clientRootPath = "/client/" + kind
+	shardRootPath = "/shard/" + kind
+	clientRootPath = "/my/" + kind
 )
 
 // Status values for records of this resource type.
@@ -60,7 +60,7 @@ func init() {
 //
 func (api ResourceApi) Register() {
 	api.RegisterAdmin()
-	api.RegisterServer()
+	api.RegisterShard()
 }
 
 // Attempts to create a valid key for a resource.

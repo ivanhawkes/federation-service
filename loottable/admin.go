@@ -63,7 +63,7 @@ func (api *ResourceApi) post(r *restful.Request, w *restful.Response) {
 	// Set some fields that need special handling.
 	resource.LastModified = time.Now()
 	resource.Status = StatusActive
-	resource.Version = 1
+	resource.Revision = 1
 
 	// Store the resource.
 	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, kind, nil), resource)
@@ -78,16 +78,16 @@ func (api *ResourceApi) post(r *restful.Request, w *restful.Response) {
 
 	// Let them know the location of the newly created resource.
 	// TODO: Use a safe Url path append function.
-	w.AddHeader("Location", serverRootPath+"/"+k.Encode())
+	w.AddHeader("Location", shardRootPath + "/" + k.Encode())
 
 	// Provide a link for ease of API usage.
 	resource.Link.Rel = "self"
-	resource.Link.Href = serverRootPath + "/" + k.Encode()
+	resource.Link.Href = shardRootPath + "/" + k.Encode()
 
 	// Set the headers.
 	w.WriteHeader(http.StatusCreated)
 	w.AddHeader(restful.HEADER_LastModified, resource.LastModified.String())
-	w.AddHeader("ETag", strconv.Itoa(resource.Version))
+	w.AddHeader("ETag", strconv.Itoa(resource.Revision))
 
 	// Output the response body.
 	w.WriteEntity(resource)
@@ -129,7 +129,7 @@ func (api *ResourceApi) put(r *restful.Request, w *restful.Response) {
 
 		// Keep track of the last modification date.
 		resource.LastModified = time.Now()
-		resource.Version = old.Version + 1
+		resource.Revision = old.Revision + 1
 
 		// Attempt to overwrite the old entity.
 		_, err = datastore.Put(c, k, resource)
@@ -141,7 +141,7 @@ func (api *ResourceApi) put(r *restful.Request, w *restful.Response) {
 
 		// Set the headers.
 		w.AddHeader(restful.HEADER_LastModified, resource.LastModified.String())
-		w.AddHeader("ETag", strconv.Itoa(resource.Version))
+		w.AddHeader("ETag", strconv.Itoa(resource.Revision))
 
 		// Let them know it succeeded.
 		w.WriteHeader(http.StatusNoContent)

@@ -63,11 +63,6 @@ ag9zfnNzLWZlZGVyYXRpb25yFgsSCWxvb3R0YWJsZRiAgICAgICACgw - live
   "allow_preload" : true,
   "probabilities": [
     {
-      "item_id": 60,
-      "probability": 0.3,
-      "quantity": 1
-    },
-    {
       "item_id": 61,
       "probability": 0.3,
       "quantity": 1
