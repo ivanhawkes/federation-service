@@ -16,7 +16,7 @@ func init() {
 
 // Register the routes we require for this resource type.
 //
-func (api LootTableApi) RegisterServer() {
+func (api ResourceApi) RegisterServer() {
 	ws := new(restful.WebService)
 
 	ws.
@@ -24,34 +24,33 @@ func (api LootTableApi) RegisterServer() {
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 
-	ws.Route(ws.GET("/{loottable-id}").To(api.get).
+	ws.Route(ws.GET("/{resource-id}").To(api.get).
 		// Swagger documentation.
-		Doc("read a loot table").
-		Param(ws.PathParameter("loottable-id", "identifier for a loottable").DataType("string")).
+		Doc("Read a resource").
+		Param(ws.PathParameter("resource-id", "valid key for an existing resource").DataType("string")).
 		Writes(LootTable{}))
 
-	ws.Route(ws.HEAD("/{loottable-id}").To(api.head).
+	ws.Route(ws.HEAD("/{resource-id}").To(api.head).
 		// Swagger documentation.
-		Doc("return the document headers").
-		Param(ws.PathParameter("loottable-id", "identifier for a loottable").DataType("string")))
+		Doc("Returns the headers for a resource").
+		Param(ws.PathParameter("resource-id", "valid key for an existing resource").DataType("string")))
 
-	ws.Route(ws.GET("/summary").To(api.summary).
+	ws.Route(ws.GET("/summary").To(api.listSummary).
 		// Swagger documentation.
-		Doc("returns a summary of all the loot tables").
-		//Writes(LootSummary{}))
-		Writes([]LootShallow{}))
+		Doc("Summary list of all resources").
+		Writes([]Shallow{}))
 
-	ws.Route(ws.GET("/all").To(api.all).
+	ws.Route(ws.GET("/all").To(api.listAll).
 		// Swagger documentation.
-		Doc("returns a complete listing of all the loot tables").
+		Doc("Comprehensive list of all resources").
 		Writes(LootQuery{}))
 
 	restful.Add(ws)
 }
 
-// Get a representation of the resource from our datastore.
+// Read a resource
 //
-func (api LootTableApi) get(r *restful.Request, w *restful.Response) {
+func (api ResourceApi) get(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Grab the key and validate it.
@@ -59,8 +58,8 @@ func (api LootTableApi) get(r *restful.Request, w *restful.Response) {
 		return
 	} else {
 		// Retrieve the entity from the datastore.
-		loottable := LootTable{}
-		if err := datastore.Get(c, k, &loottable); err != nil {
+		resource := new (LootTable)
+		if err := datastore.Get(c, k, resource); err != nil {
 			if err.Error() == "datastore: no such entity" {
 				w.AddHeader("Content-Type", "text/plain")
 				w.WriteErrorString(http.StatusNotFound, err.Error())
@@ -74,24 +73,24 @@ func (api LootTableApi) get(r *restful.Request, w *restful.Response) {
 		}
 
 		// Set their Key.
-		loottable.Key = k.Encode()
+		resource.Key = k.Encode()
 
 		// Provide a link for ease of API usage.
-		loottable.Link.Rel = "self"
-		loottable.Link.Href = serverRootPath + "/" + k.Encode()
+		resource.Link.Rel = "self"
+		resource.Link.Href = serverRootPath + "/" + k.Encode()
 
 		// Set the headers.
-		w.AddHeader(restful.HEADER_LastModified, loottable.LastModified.String())
-		w.AddHeader("ETag", strconv.Itoa(loottable.Version))
+		w.AddHeader(restful.HEADER_LastModified, resource.LastModified.String())
+		w.AddHeader("ETag", strconv.Itoa(resource.Version))
 
 		// Output the response body.
-		w.WriteEntity(loottable)
+		w.WriteEntity(resource)
 	}
 }
 
-// Return the headers for a resource.
+// Returns the headers for a resource
 //
-func (api LootTableApi) head(r *restful.Request, w *restful.Response) {
+func (api ResourceApi) head(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Grab the key and validate it.
@@ -99,8 +98,8 @@ func (api LootTableApi) head(r *restful.Request, w *restful.Response) {
 		return
 	} else {
 		// Retrieve the entity from the datastore.
-		loottable := LootTable{}
-		if err := datastore.Get(c, k, &loottable); err != nil {
+		resource := new (LootTable)
+		if err := datastore.Get(c, k, resource); err != nil {
 			if err.Error() == "datastore: no such entity" {
 				w.AddHeader("Content-Type", "text/plain")
 				w.WriteErrorString(http.StatusNotFound, err.Error())
@@ -114,28 +113,28 @@ func (api LootTableApi) head(r *restful.Request, w *restful.Response) {
 		}
 
 		// Set their Key.
-		loottable.Key = k.Encode()
+		resource.Key = k.Encode()
 
 		// Provide a link for ease of API usage.
-		loottable.Link.Rel = "self"
-		loottable.Link.Href = serverRootPath + "/" + k.Encode()
+		resource.Link.Rel = "self"
+		resource.Link.Href = serverRootPath + "/" + k.Encode()
 
 		// Only return the headers.
-		w.AddHeader(restful.HEADER_LastModified, loottable.LastModified.String())
-		w.AddHeader("ETag", strconv.Itoa(loottable.Version))
+		w.AddHeader(restful.HEADER_LastModified, resource.LastModified.String())
+		w.AddHeader("ETag", strconv.Itoa(resource.Version))
 
 		// No response body required for this verb.
 		w.WriteHeader(http.StatusNoContent)
 	}
 }
 
-// Retrieve a summary of all the loot tables.
+// Summary list of all resources
 //
-func (api LootTableApi) summary(r *restful.Request, w *restful.Response) {
+func (api ResourceApi) listSummary(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	var q *datastore.Query
-	var result LootSummary
+	var result ListSummary
 
 	// Check if they want to limit the query using a modified since date.
 	if ifModifiedSince := r.HeaderParameter("If-Modified-Since"); ifModifiedSince == "" {
@@ -169,9 +168,9 @@ func (api LootTableApi) summary(r *restful.Request, w *restful.Response) {
 
 }
 
-// Retrieve a summary of all the loot tables.
+// Comprehensive list of all resources
 //
-func (api LootTableApi) all(r *restful.Request, w *restful.Response) {
+func (api ResourceApi) listAll(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	var result LootQuery

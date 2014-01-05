@@ -15,7 +15,7 @@ const (
 	clientRootPath = "/client/" + kind
 )
 
-// The various states for a loottable resource.
+// Status values for records of this resource type.
 const (
 	StatusActive = iota
 	StatusDeactivated
@@ -29,36 +29,36 @@ type Link struct {
 	Href string `datastore:"-" json:"href" xml:"href"`
 }
 
-type LootShallow struct {
+type Shallow struct {
 	Key          string    `datastore:"-" json:"key" xml:"key"`
 	LastModified time.Time `json:"last_modified" xml:"last-modified"`
 	Version      int       `json:"version" xml:"version"`
 	Status       int       `json:"status" xml:"status"`
-	Name         string    `json:"name" xml:"name"`
 	Link         Link      `datastore:"-" json:"link" xml:"link"`
+	Name         string    `json:"name" xml:"name"`
 }
 
-type LootEntry struct {
+type ProbabilityEntry struct {
 	ItemId      int64   `datastore:"ItemId" json:"item_id" xml:"item-id"`
 	Probability float32 `datastore:"Probability" json:"probability" xml:"probability"`
 	Quantity    int16   `datastore:"Quantity" json:"quantity" xml:"quantity"`
 }
 
 type LootTable struct {
-	LootShallow
-	AllowPreload  bool        `json:"allow_preload" xml:"allow-preload"`
-	Probabilities []LootEntry `json:"probabilities" xml:"probabilities"`
+	Shallow
+	AllowPreload  bool               `json:"allow_preload" xml:"allow-preload"`
+	Probabilities []ProbabilityEntry `json:"probabilities" xml:"probabilities"`
 }
 
-type LootSummary struct {
-	LootTables []LootShallow `json:"loot_tables" xml:"loot-tables"`
+type ListSummary struct {
+	LootTables []Shallow `json:"loot_tables" xml:"loot-tables"`
 }
 
 type LootQuery struct {
 	LootTables []LootTable `json:"loot_tables" xml:"loot-tables"`
 }
 
-type LootTableApi struct {
+type ResourceApi struct {
 	Path string
 }
 
@@ -68,17 +68,17 @@ func init() {
 
 // Register the routes we require for this resource type.
 //
-func (api LootTableApi) Register() {
+func (api ResourceApi) Register() {
 	api.RegisterAdmin()
 	api.RegisterServer()
 }
 
 // Attempts to create a valid key for a resource.
 //
-func (api LootTableApi) getKey(r *restful.Request, w *restful.Response) (*datastore.Key, error) {
+func (api ResourceApi) getKey(r *restful.Request, w *restful.Response) (*datastore.Key, error) {
 
 	// Decode the request parameter to determine the key for the entity.
-	k, err := datastore.DecodeKey(r.PathParameter("loottable-id"))
+	k, err := datastore.DecodeKey(r.PathParameter("resource-id"))
 	if err != nil {
 		w.AddHeader("Content-Type", "text/plain")
 		w.WriteErrorString(http.StatusBadRequest, "The key is not valid.\n")

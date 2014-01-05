@@ -16,7 +16,7 @@ func init() {
 
 // Register the routes we require for this resource type.
 //
-func (api LootTableApi) RegisterAdmin() {
+func (api ResourceApi) RegisterAdmin() {
 	ws := new(restful.WebService)
 
 	ws.
@@ -26,28 +26,28 @@ func (api LootTableApi) RegisterAdmin() {
 
 	ws.Route(ws.POST("").To(api.post).
 		// Swagger documentation.
-		Doc("create a new loot table").
-		Param(ws.BodyParameter("LootTable", "representation of a loottable").DataType("loottable.LootTable")).
+		Doc("Create a new resource").
+		Param(ws.BodyParameter("LootTable", "representation of a valid resource").DataType("loottable.LootTable")).
 		Reads(LootTable{}))
 
-	ws.Route(ws.PUT("/{loottable-id}").To(api.put).
+	ws.Route(ws.PUT("/{resource-id}").To(api.put).
 		// Swagger documentation.
-		Doc("update an existing loot table").
-		Param(ws.PathParameter("loottable-id", "identifier for a loottable").DataType("string")).
-		Param(ws.BodyParameter("LootTable", "representation of a loottable").DataType("loottable.LootTable")).
+		Doc("Update an existing resource").
+		Param(ws.PathParameter("resource-id", "valid key for an existing resource").DataType("string")).
+		Param(ws.BodyParameter("LootTable", "representation of a valid resource").DataType("loottable.LootTable")).
 		Reads(LootTable{}))
 
-	ws.Route(ws.DELETE("/{loottable-id}").To(api.delete).
+	ws.Route(ws.DELETE("/{resource-id}").To(api.delete).
 		// Swagger documentation.
-		Doc("delete a loot table").
-		Param(ws.PathParameter("loottable-id", "identifier for a loottable").DataType("string")))
+		Doc("Delete an existing resource").
+		Param(ws.PathParameter("resource-id", "valid key for an existing resource").DataType("string")))
 
 	restful.Add(ws)
 }
 
 // Create a new resource.
 //
-func (api *LootTableApi) post(r *restful.Request, w *restful.Response) {
+func (api *ResourceApi) post(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Marshall the entity from the request into a struct.
@@ -94,7 +94,7 @@ func (api *LootTableApi) post(r *restful.Request, w *restful.Response) {
 
 // Update the resource.
 //
-func (api *LootTableApi) put(r *restful.Request, w *restful.Response) {
+func (api *ResourceApi) put(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Grab the key and validate it.
@@ -112,8 +112,8 @@ func (api *LootTableApi) put(r *restful.Request, w *restful.Response) {
 		}
 
 		// Retrieve the old entity from the datastore.
-		old := LootTable{}
-		if err := datastore.Get(c, k, &old); err != nil {
+		old := new (LootTable)
+		if err := datastore.Get(c, k, old); err != nil {
 			if err.Error() == "datastore: no such entity" {
 				w.AddHeader("Content-Type", "text/plain")
 				w.WriteErrorString(http.StatusNotFound, err.Error())
@@ -149,7 +149,7 @@ func (api *LootTableApi) put(r *restful.Request, w *restful.Response) {
 
 // Delete the resource.
 //
-func (api *LootTableApi) delete(r *restful.Request, w *restful.Response) {
+func (api *ResourceApi) delete(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Grab the key and validate it.
@@ -158,8 +158,8 @@ func (api *LootTableApi) delete(r *restful.Request, w *restful.Response) {
 	} else {
 
 		// Retrieve the old entity from the datastore.
-		old := LootTable{}
-		if err := datastore.Get(c, k, &old); err != nil {
+		old := new (LootTable)
+		if err := datastore.Get(c, k, old); err != nil {
 			if err.Error() == "datastore: no such entity" {
 				w.AddHeader("Content-Type", "text/plain")
 				w.WriteErrorString(http.StatusNotFound, err.Error())
