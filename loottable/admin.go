@@ -36,12 +36,14 @@ func (api ResourceApi) RegisterAdmin() {
 		Doc("Update an existing resource").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
 		Param(ws.BodyParameter("loottable.Resource", "representation of a resource").DataType("loottable.Resource")).
+		Param(ws.HeaderParameter("If-Unmodified-Since", "Conditional modifier").DataType("RFC3339Nano Date")).
 		Reads(Resource{}))
 
 	ws.Route(ws.DELETE("/{resource-id}").To(api.delete).
 		// Swagger documentation.
 		Doc("Delete an existing resource").
-		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")))
+		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
+		Param(ws.HeaderParameter("If-Unmodified-Since", "Conditional modifier").DataType("RFC3339Nano Date")))
 
 	restful.Add(ws)
 }
@@ -127,7 +129,7 @@ func (api *ResourceApi) put(r *restful.Request, w *restful.Response) {
 			return
 		}
 
-		// Use conditional delete - check LastModified before doing anything.
+		// Use conditional put - check LastModified before doing anything.
 		if ifUnmodifiedSince := r.HeaderParameter("If-Unmodified-Since"); ifUnmodifiedSince == "" {
 				w.AddHeader("Content-Type", "text/plain")
 				w.WriteErrorString(http.StatusForbidden, "Unconditional updates are not supported. Please provide 'If-Unmodified-Since' headers.")

@@ -28,21 +28,25 @@ func (api ResourceApi) RegisterShard() {
 		// Swagger documentation.
 		Doc("Read a resource").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
+		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")).
 		Writes(Resource{}))
 
 	ws.Route(ws.HEAD("/{resource-id}").To(api.head).
 		// Swagger documentation.
 		Doc("Returns the headers for a resource").
-		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")))
+		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
+		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")))
 
 	ws.Route(ws.GET("/summary").To(api.listSummary).
 		// Swagger documentation.
 		Doc("Summary list of all resources").
+		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")).
 		Writes(ListSummary{}))
 
 	ws.Route(ws.GET("/all").To(api.listAll).
 		// Swagger documentation.
 		Doc("Comprehensive list of all resources").
+		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")).
 		Writes(ListComprehensive{}))
 
 	restful.Add(ws)
