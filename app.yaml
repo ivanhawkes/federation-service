@@ -27,7 +27,7 @@ handlers:
 # Admin features
 - url: /admin/.*
   script: _go_app
-  login: admin
+#  login: admin
 
 # Some admin thing I think?
 - url: /_ah/spi/.*
