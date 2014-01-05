@@ -50,7 +50,6 @@ type ListComprehensive struct {
 }
 
 type ResourceApi struct {
-	Path string
 }
 
 func init() {
