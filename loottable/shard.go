@@ -115,7 +115,6 @@ func (api ResourceApi) get(r *restful.Request, w *restful.Response) {
 		w.AddHeader("ETag", strconv.Itoa(resource.Revision))
 
 		// Cache Control: By allowing a short cache time here we can reduce database calls and cost.
-		// This is particularly true if you spin up a lot of shards within the cache time period.
 		w.AddHeader("Cache-Control", "max-age=3600,must-revalidate")
 
 		// Output the response body.
@@ -190,7 +189,6 @@ func (api ResourceApi) head(r *restful.Request, w *restful.Response) {
 		w.AddHeader("ETag", strconv.Itoa(resource.Revision))
 
 		// Cache Control: By allowing a short cache time here we can reduce database calls and cost.
-		// This is particularly true if you spin up a lot of shards within the cache time period.
 		w.AddHeader("Cache-Control", "max-age=3600,must-revalidate")
 
 		// No response body required for this verb.
@@ -236,7 +234,6 @@ func (api ResourceApi) listSummary(r *restful.Request, w *restful.Response) {
 	}
 
 	// Cache Control: By allowing a short cache time here we can reduce database calls and cost.
-	// This is particularly true if you spin up a lot of shards within the cache time period.
 	w.AddHeader("Cache-Control", "max-age=3600,must-revalidate")
 	w.AddHeader(restful.HEADER_LastModified, time.Now().Format(time.RFC3339Nano))
 
@@ -279,7 +276,6 @@ func (api ResourceApi) listAll(r *restful.Request, w *restful.Response) {
 	}
 
 	// Cache Control: By allowing a short cache time here we can reduce database calls and cost.
-	// This is particularly true if you spin up a lot of shards within the cache time period.
 	w.AddHeader("Cache-Control", "max-age=3600,must-revalidate")
 	w.AddHeader(restful.HEADER_LastModified, time.Now().Format(time.RFC3339Nano))
 
