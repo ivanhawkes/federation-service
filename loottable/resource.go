@@ -2,16 +2,16 @@ package loottable
 
 import (
 	"appengine/datastore"
+	"common"
 	"github.com/emicklei/go-restful"
 	"log"
 	"net/http"
-	"common"
 )
 
 const (
 	kind           = "loottable"
 	adminRootPath  = "/admin/" + kind
-	shardRootPath = "/shard/" + kind
+	shardRootPath  = "/shard/" + kind
 	clientRootPath = "/my/" + kind
 )
 
@@ -32,7 +32,7 @@ type ProbabilityEntry struct {
 
 type Shallow struct {
 	common.BaseResource
-	Name         string    `json:"name" xml:"name"`
+	Name string `json:"name" xml:"name"`
 }
 
 type Resource struct {

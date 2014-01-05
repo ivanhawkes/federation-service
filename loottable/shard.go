@@ -57,8 +57,39 @@ func (api ResourceApi) get(r *restful.Request, w *restful.Response) {
 	if k, err := api.getKey(r, w); err != nil {
 		return
 	} else {
+
+		// Check if they want to limit the query using a modified since date.
+		if ifModifiedSince := r.HeaderParameter("If-Modified-Since"); ifModifiedSince != "" {
+			if t, err := time.Parse(time.RFC3339Nano, ifModifiedSince); err != nil {
+				w.AddHeader("Content-Type", "text/plain")
+				w.WriteErrorString(http.StatusNotAcceptable, err.Error())
+				return
+			} else {
+				// Check the versioning information and see if we can tell them the
+				// resource is unmodified.
+				q := datastore.NewQuery(kind).
+					Filter("__key__ =", k).
+					Filter("LastModified >", t).
+					KeysOnly()
+
+				if keys, err := q.GetAll(c, nil); err != nil {
+					w.AddHeader("Content-Type", "text/plain")
+					w.WriteErrorString(http.StatusInternalServerError, err.Error())
+					return
+				} else {
+
+					if len(keys) == 0 {
+						// Not modified.
+						w.WriteHeader(http.StatusNotModified)
+						w.WriteEntity(nil)
+						return
+					}
+				}
+			}
+		}
+
 		// Retrieve the entity from the datastore.
-		resource := new (Resource)
+		resource := new(Resource)
 		if err := datastore.Get(c, k, resource); err != nil {
 			if err.Error() == "datastore: no such entity" {
 				w.AddHeader("Content-Type", "text/plain")
@@ -80,7 +111,7 @@ func (api ResourceApi) get(r *restful.Request, w *restful.Response) {
 		resource.Link.Href = shardRootPath + "/" + k.Encode()
 
 		// Set the headers.
-		w.AddHeader(restful.HEADER_LastModified, resource.LastModified.String())
+		w.AddHeader(restful.HEADER_LastModified, resource.LastModified.Format(time.RFC3339Nano))
 		w.AddHeader("ETag", strconv.Itoa(resource.Revision))
 
 		// Output the response body.
@@ -98,7 +129,7 @@ func (api ResourceApi) head(r *restful.Request, w *restful.Response) {
 		return
 	} else {
 		// Retrieve the entity from the datastore.
-		resource := new (Resource)
+		resource := new(Resource)
 		if err := datastore.Get(c, k, resource); err != nil {
 			if err.Error() == "datastore: no such entity" {
 				w.AddHeader("Content-Type", "text/plain")
@@ -120,11 +151,12 @@ func (api ResourceApi) head(r *restful.Request, w *restful.Response) {
 		resource.Link.Href = shardRootPath + "/" + k.Encode()
 
 		// Only return the headers.
-		w.AddHeader(restful.HEADER_LastModified, resource.LastModified.String())
+		w.AddHeader(restful.HEADER_LastModified, resource.LastModified.Format(time.RFC3339Nano))
 		w.AddHeader("ETag", strconv.Itoa(resource.Revision))
 
 		// No response body required for this verb.
 		w.WriteHeader(http.StatusNoContent)
+		w.WriteEntity(nil)
 	}
 }
 
@@ -148,7 +180,7 @@ func (api ResourceApi) listSummary(r *restful.Request, w *restful.Response) {
 		} else {
 			q = datastore.NewQuery(kind).
 				Project("LastModified", "Revision", "Status", "Name").
-				Filter("LastModified >=", t)
+				Filter("LastModified >", t)
 		}
 	}
 
@@ -186,7 +218,7 @@ func (api ResourceApi) listAll(r *restful.Request, w *restful.Response) {
 			return
 		} else {
 			q = datastore.NewQuery(kind).
-				Filter("LastModified >=", t)
+				Filter("LastModified >", t)
 		}
 	}
 

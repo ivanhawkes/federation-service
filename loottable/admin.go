@@ -78,7 +78,7 @@ func (api *ResourceApi) post(r *restful.Request, w *restful.Response) {
 
 	// Let them know the location of the newly created resource.
 	// TODO: Use a safe Url path append function.
-	w.AddHeader("Location", shardRootPath + "/" + k.Encode())
+	w.AddHeader("Location", shardRootPath+"/"+k.Encode())
 
 	// Provide a link for ease of API usage.
 	resource.Link.Rel = "self"
@@ -86,7 +86,7 @@ func (api *ResourceApi) post(r *restful.Request, w *restful.Response) {
 
 	// Set the headers.
 	w.WriteHeader(http.StatusCreated)
-	w.AddHeader(restful.HEADER_LastModified, resource.LastModified.String())
+	w.AddHeader(restful.HEADER_LastModified, resource.LastModified.Format(time.RFC3339Nano))
 	w.AddHeader("ETag", strconv.Itoa(resource.Revision))
 
 	// Output the response body.
@@ -113,7 +113,7 @@ func (api *ResourceApi) put(r *restful.Request, w *restful.Response) {
 		}
 
 		// Retrieve the old entity from the datastore.
-		old := new (Resource)
+		old := new(Resource)
 		if err := datastore.Get(c, k, old); err != nil {
 			if err.Error() == "datastore: no such entity" {
 				w.AddHeader("Content-Type", "text/plain")
@@ -140,11 +140,12 @@ func (api *ResourceApi) put(r *restful.Request, w *restful.Response) {
 		}
 
 		// Set the headers.
-		w.AddHeader(restful.HEADER_LastModified, resource.LastModified.String())
+		w.AddHeader(restful.HEADER_LastModified, resource.LastModified.Format(time.RFC3339Nano))
 		w.AddHeader("ETag", strconv.Itoa(resource.Revision))
 
 		// Let them know it succeeded.
 		w.WriteHeader(http.StatusNoContent)
+		w.WriteEntity(nil)
 	}
 }
 
@@ -159,7 +160,7 @@ func (api *ResourceApi) delete(r *restful.Request, w *restful.Response) {
 	} else {
 
 		// Retrieve the old entity from the datastore.
-		old := new (Resource)
+		old := new(Resource)
 		if err := datastore.Get(c, k, old); err != nil {
 			if err.Error() == "datastore: no such entity" {
 				w.AddHeader("Content-Type", "text/plain")
@@ -182,5 +183,6 @@ func (api *ResourceApi) delete(r *restful.Request, w *restful.Response) {
 
 		// Success notification.
 		w.WriteHeader(http.StatusNoContent)
+		w.WriteEntity(nil)
 	}
 }
