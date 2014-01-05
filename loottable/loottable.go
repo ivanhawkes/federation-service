@@ -114,6 +114,28 @@ func (api LootTableApi) Register() {
 	restful.Add(ws)
 }
 
+// Attempts to create a valid key for a resource.
+//
+func (api LootTableApi) getKey(r *restful.Request, w *restful.Response) (*datastore.Key, error) {
+
+	// Decode the request parameter to determine the key for the entity.
+	k, err := datastore.DecodeKey(r.PathParameter("loottable-id"))
+	if err != nil {
+		w.AddHeader("Content-Type", "text/plain")
+		w.WriteErrorString(http.StatusBadRequest, "The key is not valid.\n")
+		return nil, err
+	}
+
+	// Check for shenanigans with the key.
+	if k.Kind() != kind {
+		w.AddHeader("Content-Type", "text/plain")
+		w.WriteErrorString(http.StatusBadRequest, "The key is not valid for this type of resource.\n")
+		return nil, err
+	}
+
+	return k, nil
+}
+
 // Create a new resource.
 //
 func (api *LootTableApi) post(r *restful.Request, w *restful.Response) {
@@ -123,7 +145,8 @@ func (api *LootTableApi) post(r *restful.Request, w *restful.Response) {
 	loottable := new(LootTable)
 	err := r.ReadEntity(&loottable)
 	if err != nil {
-		w.WriteError(http.StatusNotAcceptable, err)
+		w.AddHeader("Content-Type", "text/plain")
+		w.WriteErrorString(http.StatusNotAcceptable, err.Error())
 		return
 	}
 
@@ -134,7 +157,8 @@ func (api *LootTableApi) post(r *restful.Request, w *restful.Response) {
 	// Store the loottable.
 	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, kind, nil), loottable)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.AddHeader("Content-Type", "text/plain")
+		w.WriteErrorString(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -154,26 +178,6 @@ func (api *LootTableApi) post(r *restful.Request, w *restful.Response) {
 	w.WriteEntity(loottable)
 }
 
-func (api LootTableApi) getKey(r *restful.Request, w *restful.Response) (*datastore.Key, error) {
-
-	// Decode the request parameter to determine the key for the entity.
-	k, err := datastore.DecodeKey(r.PathParameter("loottable-id"))
-	if err != nil {
-		w.AddHeader("Content-Type", "text/plain")
-		w.WriteErrorString(http.StatusBadRequest, "The key is not valid.")
-		return nil, err
-	}
-
-	// Check for shenanigans with the key.
-	if k.Kind() != kind {
-		w.AddHeader("Content-Type", "text/plain")
-		w.WriteErrorString(http.StatusBadRequest, "The key is broken..")
-		return nil, err
-	}
-
-	return k, nil
-}
-
 // Get a representation of the resource from our datastore.
 //
 func (api LootTableApi) get(r *restful.Request, w *restful.Response) {
@@ -187,20 +191,16 @@ func (api LootTableApi) get(r *restful.Request, w *restful.Response) {
 		loottable := LootTable{}
 		if err := datastore.Get(c, k, &loottable); err != nil {
 			if err.Error() == "datastore: no such entity" {
-				http.Error(w, err.Error(), http.StatusNotFound)
+				w.AddHeader("Content-Type", "text/plain")
+				w.WriteErrorString(http.StatusNotFound, err.Error())
+				return
 			} else {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				w.AddHeader("Content-Type", "text/plain")
+				w.WriteErrorString(http.StatusInternalServerError, err.Error())
+				return
 			}
 			return
 		}
-
-		// Check we own the resource before allowing them to view it.
-		// Optionally, return a 404 instead to help prevent guessing ids.
-		// TODO: Allow admins access.
-		//if loottable.UserId != user.Current(c).ID {
-		//	http.Error(w, "You do not have access to this resource", http.StatusForbidden)
-		//	return
-		//}
 
 		// Set their Id.
 		loottable.Id = k.Encode()
@@ -227,20 +227,16 @@ func (api LootTableApi) head(r *restful.Request, w *restful.Response) {
 		loottable := LootTable{}
 		if err := datastore.Get(c, k, &loottable); err != nil {
 			if err.Error() == "datastore: no such entity" {
-				http.Error(w, err.Error(), http.StatusNotFound)
+				w.AddHeader("Content-Type", "text/plain")
+				w.WriteErrorString(http.StatusNotFound, err.Error())
+				return
 			} else {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				w.AddHeader("Content-Type", "text/plain")
+				w.WriteErrorString(http.StatusInternalServerError, err.Error())
+				return
 			}
 			return
 		}
-
-		// Check we own the resource before allowing them to view it.
-		// Optionally, return a 404 instead to help prevent guessing ids.
-		// TODO: Allow admins access.
-		//if loottable.UserId != user.Current(c).ID {
-		//	http.Error(w, "You do not have access to this resource", http.StatusForbidden)
-		//	return
-		//}
 
 		// Set their Id.
 		loottable.Id = k.Encode()
@@ -268,7 +264,8 @@ func (api *LootTableApi) put(r *restful.Request, w *restful.Response) {
 		loottable := new(LootTable)
 		err = r.ReadEntity(&loottable)
 		if err != nil {
-			w.WriteError(http.StatusNotAcceptable, err)
+			w.AddHeader("Content-Type", "text/plain")
+			w.WriteErrorString(http.StatusNotAcceptable, err.Error())
 			return
 		}
 
@@ -276,24 +273,16 @@ func (api *LootTableApi) put(r *restful.Request, w *restful.Response) {
 		old := LootTable{}
 		if err := datastore.Get(c, k, &old); err != nil {
 			if err.Error() == "datastore: no such entity" {
-				http.Error(w, err.Error(), http.StatusNotFound)
+				w.AddHeader("Content-Type", "text/plain")
+				w.WriteErrorString(http.StatusNotFound, err.Error())
+				return
 			} else {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				w.AddHeader("Content-Type", "text/plain")
+				w.WriteErrorString(http.StatusInternalServerError, err.Error())
+				return
 			}
 			return
 		}
-
-		// Check we own the resource before allowing them to update it.
-		// Optionally, return a 404 instead to help prevent guessing ids.
-		// TODO: Allow admins access.
-		// if old.UserId != user.Current(c).ID {
-		// 	http.Error(w, "You do not have access to this resource", http.StatusForbidden)
-		// 	return
-		// }
-
-		// Since the whole entity is re-written, we need to assign any invariant fields again
-		// e.g. the owner of the entity.
-		// loottable.UserId = user.Current(c).ID
 
 		// Keep track of the last modification date.
 		loottable.LastModified = time.Now()
@@ -301,7 +290,8 @@ func (api *LootTableApi) put(r *restful.Request, w *restful.Response) {
 		// Attempt to overwrite the old entity.
 		_, err = datastore.Put(c, k, loottable)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			w.AddHeader("Content-Type", "text/plain")
+			w.WriteErrorString(http.StatusInternalServerError, err.Error())
 			return
 		}
 
@@ -327,24 +317,22 @@ func (api *LootTableApi) delete(r *restful.Request, w *restful.Response) {
 		old := LootTable{}
 		if err := datastore.Get(c, k, &old); err != nil {
 			if err.Error() == "datastore: no such entity" {
-				http.Error(w, err.Error(), http.StatusNotFound)
+				w.AddHeader("Content-Type", "text/plain")
+				w.WriteErrorString(http.StatusNotFound, err.Error())
+				return
 			} else {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				w.AddHeader("Content-Type", "text/plain")
+				w.WriteErrorString(http.StatusInternalServerError, err.Error())
+				return
 			}
 			return
 		}
 
-		// Check we own the resource before allowing them to delete it.
-		// Optionally, return a 404 instead to help prevent guessing ids.
-		// TODO: Allow admins access.
-		// if old.UserId != user.Current(c).ID {
-		// 	http.Error(w, "You do not have access to this resource", http.StatusForbidden)
-		// 	return
-		// }
-
 		// Delete the entity.
 		if err := datastore.Delete(c, k); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			w.AddHeader("Content-Type", "text/plain")
+			w.WriteErrorString(http.StatusInternalServerError, err.Error())
+			return
 		}
 
 		// Success notification.
@@ -360,7 +348,8 @@ func (api LootTableApi) summary(r *restful.Request, w *restful.Response) {
 		Project("Name")
 	var summary LootSummary
 	if keys, err := q.GetAll(c, &summary.LootTables); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.AddHeader("Content-Type", "text/plain")
+		w.WriteErrorString(http.StatusInternalServerError, err.Error())
 		return
 	} else {
 		for i, key := range keys {
@@ -379,7 +368,8 @@ func (api LootTableApi) all(r *restful.Request, w *restful.Response) {
 	q := datastore.NewQuery(kind)
 	var lootQuery LootQuery
 	if keys, err := q.GetAll(c, &lootQuery.LootTables); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.AddHeader("Content-Type", "text/plain")
+		w.WriteErrorString(http.StatusInternalServerError, err.Error())
 		return
 	} else {
 		for i, key := range keys {
