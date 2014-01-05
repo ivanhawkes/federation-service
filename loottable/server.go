@@ -27,23 +27,23 @@ func (api ResourceApi) RegisterServer() {
 	ws.Route(ws.GET("/{resource-id}").To(api.get).
 		// Swagger documentation.
 		Doc("Read a resource").
-		Param(ws.PathParameter("resource-id", "valid key for an existing resource").DataType("string")).
-		Writes(LootTable{}))
+		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
+		Writes(Resource{}))
 
 	ws.Route(ws.HEAD("/{resource-id}").To(api.head).
 		// Swagger documentation.
 		Doc("Returns the headers for a resource").
-		Param(ws.PathParameter("resource-id", "valid key for an existing resource").DataType("string")))
+		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")))
 
 	ws.Route(ws.GET("/summary").To(api.listSummary).
 		// Swagger documentation.
 		Doc("Summary list of all resources").
-		Writes([]Shallow{}))
+		Writes(ListSummary{}))
 
 	ws.Route(ws.GET("/all").To(api.listAll).
 		// Swagger documentation.
 		Doc("Comprehensive list of all resources").
-		Writes(LootQuery{}))
+		Writes(ListComprehensive{}))
 
 	restful.Add(ws)
 }
@@ -58,7 +58,7 @@ func (api ResourceApi) get(r *restful.Request, w *restful.Response) {
 		return
 	} else {
 		// Retrieve the entity from the datastore.
-		resource := new (LootTable)
+		resource := new (Resource)
 		if err := datastore.Get(c, k, resource); err != nil {
 			if err.Error() == "datastore: no such entity" {
 				w.AddHeader("Content-Type", "text/plain")
@@ -98,7 +98,7 @@ func (api ResourceApi) head(r *restful.Request, w *restful.Response) {
 		return
 	} else {
 		// Retrieve the entity from the datastore.
-		resource := new (LootTable)
+		resource := new (Resource)
 		if err := datastore.Get(c, k, resource); err != nil {
 			if err.Error() == "datastore: no such entity" {
 				w.AddHeader("Content-Type", "text/plain")
@@ -152,15 +152,15 @@ func (api ResourceApi) listSummary(r *restful.Request, w *restful.Response) {
 		}
 	}
 
-	if keys, err := q.GetAll(c, &result.LootTables); err != nil {
+	if keys, err := q.GetAll(c, &result.Entry); err != nil {
 		w.AddHeader("Content-Type", "text/plain")
 		w.WriteErrorString(http.StatusInternalServerError, err.Error())
 		return
 	} else {
 		for i, k := range keys {
-			result.LootTables[i].Key = k.Encode()
-			result.LootTables[i].Link.Rel = "self"
-			result.LootTables[i].Link.Href = serverRootPath + "/" + k.Encode()
+			result.Entry[i].Key = k.Encode()
+			result.Entry[i].Link.Rel = "self"
+			result.Entry[i].Link.Href = serverRootPath + "/" + k.Encode()
 		}
 	}
 
@@ -173,7 +173,7 @@ func (api ResourceApi) listSummary(r *restful.Request, w *restful.Response) {
 func (api ResourceApi) listAll(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
-	var result LootQuery
+	var result ListComprehensive
 	var q *datastore.Query
 
 	// Check if they want to limit the query using a modified since date.
@@ -190,15 +190,15 @@ func (api ResourceApi) listAll(r *restful.Request, w *restful.Response) {
 		}
 	}
 
-	if keys, err := q.GetAll(c, &result.LootTables); err != nil {
+	if keys, err := q.GetAll(c, &result.Entry); err != nil {
 		w.AddHeader("Content-Type", "text/plain")
 		w.WriteErrorString(http.StatusInternalServerError, err.Error())
 		return
 	} else {
 		for i, k := range keys {
-			result.LootTables[i].Key = k.Encode()
-			result.LootTables[i].Link.Rel = "self"
-			result.LootTables[i].Link.Href = serverRootPath + "/" + k.Encode()
+			result.Entry[i].Key = k.Encode()
+			result.Entry[i].Link.Rel = "self"
+			result.Entry[i].Link.Href = serverRootPath + "/" + k.Encode()
 		}
 	}
 

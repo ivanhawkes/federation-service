@@ -5,7 +5,7 @@ import (
 	"github.com/emicklei/go-restful"
 	"log"
 	"net/http"
-	"time"
+	"common"
 )
 
 const (
@@ -24,38 +24,29 @@ const (
 	StatusDeleted
 )
 
-type Link struct {
-	Rel  string `datastore:"-" json:"rel" xml:"rel"`
-	Href string `datastore:"-" json:"href" xml:"href"`
-}
-
-type Shallow struct {
-	Key          string    `datastore:"-" json:"key" xml:"key"`
-	LastModified time.Time `json:"last_modified" xml:"last-modified"`
-	Version      int       `json:"version" xml:"version"`
-	Status       int       `json:"status" xml:"status"`
-	Link         Link      `datastore:"-" json:"link" xml:"link"`
-	Name         string    `json:"name" xml:"name"`
-}
-
 type ProbabilityEntry struct {
 	ItemId      int64   `datastore:"ItemId" json:"item_id" xml:"item-id"`
 	Probability float32 `datastore:"Probability" json:"probability" xml:"probability"`
 	Quantity    int16   `datastore:"Quantity" json:"quantity" xml:"quantity"`
 }
 
-type LootTable struct {
+type Shallow struct {
+	common.BaseResource
+	Name         string    `json:"name" xml:"name"`
+}
+
+type Resource struct {
 	Shallow
 	AllowPreload  bool               `json:"allow_preload" xml:"allow-preload"`
 	Probabilities []ProbabilityEntry `json:"probabilities" xml:"probabilities"`
 }
 
 type ListSummary struct {
-	LootTables []Shallow `json:"loot_tables" xml:"loot-tables"`
+	Entry []Shallow `json:"entry" xml:"entry"`
 }
 
-type LootQuery struct {
-	LootTables []LootTable `json:"loot_tables" xml:"loot-tables"`
+type ListComprehensive struct {
+	Entry []Resource `json:"entry" xml:"entry"`
 }
 
 type ResourceApi struct {
