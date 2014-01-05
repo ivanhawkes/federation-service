@@ -114,6 +114,10 @@ func (api ResourceApi) get(r *restful.Request, w *restful.Response) {
 		w.AddHeader(restful.HEADER_LastModified, resource.LastModified.Format(time.RFC3339Nano))
 		w.AddHeader("ETag", strconv.Itoa(resource.Revision))
 
+		// Cache Control: By allowing a short cache time here we can reduce database calls and cost.
+		// This is particularly true if you spin up a lot of shards within the cache time period.
+		w.AddHeader("Cache-Control", "max-age=3600,must-revalidate")
+
 		// Output the response body.
 		w.WriteEntity(resource)
 	}
@@ -184,6 +188,10 @@ func (api ResourceApi) head(r *restful.Request, w *restful.Response) {
 		// Set the headers.
 		w.AddHeader(restful.HEADER_LastModified, resource.LastModified.Format(time.RFC3339Nano))
 		w.AddHeader("ETag", strconv.Itoa(resource.Revision))
+
+		// Cache Control: By allowing a short cache time here we can reduce database calls and cost.
+		// This is particularly true if you spin up a lot of shards within the cache time period.
+		w.AddHeader("Cache-Control", "max-age=3600,must-revalidate")
 
 		// No response body required for this verb.
 		w.WriteHeader(http.StatusNoContent)
