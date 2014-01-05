@@ -1,0 +1,108 @@
+# Users
+{"first_name": "Ivan", "last_name": "Hawkes", "avatar_url": "http://www.gravatar.com/avatar/3c9cc7724ab09dbcf5d82cf573ed0116"}
+
+	# Profiles
+	{"first_name": "Ivan", "nick_name": "Socks", "last_name": "Hawkes"}
+	{"first_name": "IvanUpdated", "nick_name": "Socks", "last_name": "HawkesUpdated"}
+
+# Federations
+# TODO: these will require public / private keys, api keys, urls for the end point services from realms
+{"name" : "Shattered Screens"}
+{"name" : "World of Warcraft"}
+{"name" : "Age of Conan"}
+{"name" : "Australia"}
+
+	# Realms
+	{"name" : "Cloud Shatter", "api" : "https://xxx.yyy.zzz"}
+	{"name" : "Queensland", "api" : "https://xxx.yyy.zzz"}
+
+		# Zones
+		{"name" : "Quantum Impact"}
+		{"name" : "Libera"}
+		{"name" : "Tallai"}
+
+	# Characters
+	{"first_name": "Chloé", "nick_name": "Socks", "last_name": "Goodchild"}
+
+# Factions
+{"name" : "Order of Illuminatus"}
+{"name" : "The Onyx Ascendancy"}
+
+# Loottables
+{
+  "name": "ResourceNode.Ore.Iron.Average",
+  "allow_preload" : true,
+  "probabilities": [
+    {
+      "item_id": 50,
+      "probability": 0.2,
+      "quantity": 1
+    },
+    {
+      "item_id": 51,
+      "probability": 0.2,
+      "quantity": 1
+    },
+    {
+      "item_id": 52,
+      "probability": 0.2,
+      "quantity": 2
+    },
+    {
+      "item_id": 53,
+      "probability": 0.05,
+      "quantity": 3
+    }
+  ]
+}
+
+ag9zfnNzLWZlZGVyYXRpb25yFgsSCWxvb3R0YWJsZRiAgICAgICACgw - live
+
+{
+  "name": "ResourceNode.Ore.Iron.Rare",
+  "allow_preload" : true,
+  "probabilities": [
+    {
+      "item_id": 60,
+      "probability": 0.3,
+      "quantity": 1
+    },
+    {
+      "item_id": 61,
+      "probability": 0.3,
+      "quantity": 1
+    },
+    {
+      "item_id": 62,
+      "probability": 0.3,
+      "quantity": 2
+    },
+    {
+      "item_id": 63,
+      "probability": 0.1,
+      "quantity": 3
+    }
+  ]
+}
+
+ag9zfnNzLWZlZGVyYXRpb25yFgsSCWxvb3R0YWJsZRiAgICAgOSRCgw - live
+
+{
+  "name": "ResourceNode.Ore.Iron.Epic",
+  "allow_preload" : true,
+  "probabilities": [
+    {
+      "item_id": 60,
+      "probability": 0.3,
+      "quantity": 1
+    },
+    {
+      "item_id": 63,
+      "probability": 0.1,
+      "quantity": 3
+    }
+  ]
+}
+
+ag9zfnNzLWZlZGVyYXRpb25yFgsSCWxvb3R0YWJsZRiAgICAgPKICgw - live
+ahFkZXZ-c3MtZmVkZXJhdGlvbnIWCxIJbG9vdHRhYmxlGICAgICAwK8KDA

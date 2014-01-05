@@ -345,7 +345,7 @@ func (api *LootTableApi) delete(r *restful.Request, w *restful.Response) {
 func (api LootTableApi) summary(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 	q := datastore.NewQuery(kind).
-		Project("Name")
+		Project("LastModified", "Status", "Name")
 	var summary LootSummary
 	if keys, err := q.GetAll(c, &summary.LootTables); err != nil {
 		w.AddHeader("Content-Type", "text/plain")
@@ -366,17 +366,17 @@ func (api LootTableApi) summary(r *restful.Request, w *restful.Response) {
 func (api LootTableApi) all(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 	q := datastore.NewQuery(kind)
-	var lootQuery LootQuery
-	if keys, err := q.GetAll(c, &lootQuery.LootTables); err != nil {
+	var result LootQuery
+	if keys, err := q.GetAll(c, &result.LootTables); err != nil {
 		w.AddHeader("Content-Type", "text/plain")
 		w.WriteErrorString(http.StatusInternalServerError, err.Error())
 		return
 	} else {
 		for i, key := range keys {
-			lootQuery.LootTables[i].Id = key.Encode()
-			lootQuery.LootTables[i].Link = rootPath + "/" + key.Encode()
+			result.LootTables[i].Id = key.Encode()
+			result.LootTables[i].Link = rootPath + "/" + key.Encode()
 		}
 	}
 
-	w.WriteEntity(lootQuery)
+	w.WriteEntity(result)
 }
