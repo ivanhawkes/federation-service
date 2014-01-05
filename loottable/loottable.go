@@ -6,6 +6,7 @@ import (
 	"github.com/emicklei/go-restful"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 	//	"io"
 	//	"bytes"
@@ -25,12 +26,18 @@ const (
 	StatusDeleted
 )
 
+type Link struct {
+	Rel  string `datastore:"-" json:"rel" xml:"rel"`
+	Href string `datastore:"-" json:"href" xml:"href"`
+}
+
 type LootShallow struct {
 	Id           string    `datastore:"-" json:"id" xml:"id"`
 	LastModified time.Time `json:"last_modified" xml:"last-modified"`
+	Version      int       `json:"version" xml:"version"`
 	Status       int       `json:"status" xml:"status"`
 	Name         string    `json:"name" xml:"name"`
-	Link         string    `datastore:"-" json:"link" xml:"link"`
+	Link         Link      `datastore:"-" json:"link" xml:"link"`
 }
 
 type LootEntry struct {
@@ -153,6 +160,7 @@ func (api *LootTableApi) post(r *restful.Request, w *restful.Response) {
 	// Set some fields that need special handling.
 	loottable.LastModified = time.Now()
 	loottable.Status = StatusActive
+	loottable.Version = 1
 
 	// Store the loottable.
 	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, kind, nil), loottable)
@@ -170,11 +178,13 @@ func (api *LootTableApi) post(r *restful.Request, w *restful.Response) {
 	w.AddHeader("Location", rootPath+"/"+k.Encode())
 
 	// Provide a link for ease of API usage.
-	// TODO: This should be a fully qualified path.
-	loottable.Link = rootPath + "/" + k.Encode()
+	loottable.Link.Rel = "self"
+	loottable.Link.Href = rootPath + "/" + k.Encode()
 
-	// Return the resultant entity.
+	// Set the headers.
 	w.WriteHeader(http.StatusCreated)
+
+	// Output the response body.
 	w.WriteEntity(loottable)
 }
 
@@ -206,10 +216,14 @@ func (api LootTableApi) get(r *restful.Request, w *restful.Response) {
 		loottable.Id = k.Encode()
 
 		// Provide a link for ease of API usage.
-		// TODO: This should be a fully qualified path.
-		loottable.Link = rootPath + "/" + k.Encode()
+		loottable.Link.Rel = "self"
+		loottable.Link.Href = rootPath + "/" + k.Encode()
 
+		// Set the headers.
 		w.AddHeader(restful.HEADER_LastModified, loottable.LastModified.String())
+		w.AddHeader("ETag", strconv.Itoa(loottable.Version))
+
+		// Output the response body.
 		w.WriteEntity(loottable)
 	}
 }
@@ -242,11 +256,15 @@ func (api LootTableApi) head(r *restful.Request, w *restful.Response) {
 		loottable.Id = k.Encode()
 
 		// Provide a link for ease of API usage.
-		// TODO: This should be a fully qualified path.
-		loottable.Link = rootPath + "/" + k.Encode()
+		loottable.Link.Rel = "self"
+		loottable.Link.Href = rootPath + "/" + k.Encode()
 
 		// Only return the headers.
 		w.AddHeader(restful.HEADER_LastModified, loottable.LastModified.String())
+		w.AddHeader("ETag", strconv.Itoa(loottable.Version))
+
+		// No response body required for this verb.
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
 
@@ -286,6 +304,7 @@ func (api *LootTableApi) put(r *restful.Request, w *restful.Response) {
 
 		// Keep track of the last modification date.
 		loottable.LastModified = time.Now()
+		loottable.Version = old.Version + 1
 
 		// Attempt to overwrite the old entity.
 		_, err = datastore.Put(c, k, loottable)
@@ -295,8 +314,9 @@ func (api *LootTableApi) put(r *restful.Request, w *restful.Response) {
 			return
 		}
 
-		// Headers.
+		// Set the headers.
 		w.AddHeader(restful.HEADER_LastModified, loottable.LastModified.String())
+		w.AddHeader("ETag", strconv.Itoa(loottable.Version))
 
 		// Let them know it succeeded.
 		w.WriteHeader(http.StatusNoContent)
@@ -345,20 +365,20 @@ func (api *LootTableApi) delete(r *restful.Request, w *restful.Response) {
 func (api LootTableApi) summary(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 	q := datastore.NewQuery(kind).
-		Project("LastModified", "Status", "Name")
-	var summary LootSummary
-	if keys, err := q.GetAll(c, &summary.LootTables); err != nil {
+		Project("LastModified", "Version", "Status", "Name")
+	var result LootSummary
+	if keys, err := q.GetAll(c, &result.LootTables); err != nil {
 		w.AddHeader("Content-Type", "text/plain")
 		w.WriteErrorString(http.StatusInternalServerError, err.Error())
 		return
 	} else {
-		for i, key := range keys {
-			summary.LootTables[i].Id = key.Encode()
-			summary.LootTables[i].Link = rootPath + "/" + key.Encode()
+		for i, k := range keys {
+			result.LootTables[i].Link.Rel = "self"
+			result.LootTables[i].Link.Href = rootPath + "/" + k.Encode()
 		}
 	}
 
-	w.WriteEntity(summary)
+	w.WriteEntity(result)
 }
 
 // Retrieve a summary of all the loot tables.
@@ -372,9 +392,9 @@ func (api LootTableApi) all(r *restful.Request, w *restful.Response) {
 		w.WriteErrorString(http.StatusInternalServerError, err.Error())
 		return
 	} else {
-		for i, key := range keys {
-			result.LootTables[i].Id = key.Encode()
-			result.LootTables[i].Link = rootPath + "/" + key.Encode()
+		for i, k := range keys {
+			result.LootTables[i].Link.Rel = "self"
+			result.LootTables[i].Link.Href = rootPath + "/" + k.Encode()
 		}
 	}
 
