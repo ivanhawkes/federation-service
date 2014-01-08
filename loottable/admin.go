@@ -20,7 +20,7 @@ func (res *Resource) RegisterAdmin() {
 	ws := new(restful.WebService)
 
 	ws.
-		Path(Resource {}.AdminRootPath ()).
+		Path(res.AdminRootPath ()).
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 
@@ -28,8 +28,8 @@ func (res *Resource) RegisterAdmin() {
 		// Swagger documentation.
 		Doc("Create a new resource").
 		Param(ws.BodyParameter("loottable.Resource", "representation of a resource").DataType("loottable.Resource")).
-		Reads(Resource{}).
-		Writes(Resource{}))
+		Reads(*res).
+		Writes(*res))
 
 	ws.Route(ws.PUT("/{resource-id}").To(res.put).
 		// Swagger documentation.
@@ -37,7 +37,7 @@ func (res *Resource) RegisterAdmin() {
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
 		Param(ws.BodyParameter("loottable.Resource", "representation of a resource").DataType("loottable.Resource")).
 		Param(ws.HeaderParameter("If-Unmodified-Since", "Conditional modifier").DataType("RFC3339Nano Date")).
-		Reads(Resource{}))
+		Reads(*res))
 
 	ws.Route(ws.DELETE("/{resource-id}").To(res.delete).
 		// Swagger documentation.
@@ -50,12 +50,11 @@ func (res *Resource) RegisterAdmin() {
 
 // Create a new resource.
 //
-func (*Resource) post(r *restful.Request, w *restful.Response) {
+func (res *Resource) post(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Marshall the entity from the request into a struct.
-	resource := new(Resource)
-	err := r.ReadEntity(&resource)
+	err := r.ReadEntity(res)
 	if err != nil {
 		w.AddHeader("Content-Type", "text/plain")
 		w.WriteErrorString(http.StatusNotAcceptable, err.Error())
@@ -63,12 +62,12 @@ func (*Resource) post(r *restful.Request, w *restful.Response) {
 	}
 
 	// Set some fields that need special handling.
-	resource.LastModified = time.Now()
-	resource.Status = StatusActive
-	resource.Revision = 1
+	res.LastModified = time.Now()
+	res.Status = StatusActive
+	res.Revision = 1
 
 	// Store the resource.
-	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, kind, nil), resource)
+	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, kind, nil), res)
 	if err != nil {
 		w.AddHeader("Content-Type", "text/plain")
 		w.WriteErrorString(http.StatusInternalServerError, err.Error())
@@ -76,23 +75,23 @@ func (*Resource) post(r *restful.Request, w *restful.Response) {
 	}
 
 	// The resource Key.
-	resource.Key = k.Encode()
+	res.Key = k.Encode()
 
 	// Let them know the location of the newly created resource.
 	// TODO: Use a safe Url path append function.
-	w.AddHeader("Location", resource.ShardRootPath () + k.Encode ())
+	w.AddHeader("Location", res.ShardRootPath () + k.Encode ())
 
 	// Provide a link for ease of API usage.
-	resource.Link.Rel = "self"
-	resource.Link.Href = resource.ShardRootPath () + k.Encode()
+	res.Link.Rel = "self"
+	res.Link.Href = res.ShardRootPath () + k.Encode()
 
 	// Set the headers.
 	w.WriteHeader(http.StatusCreated)
-	w.AddHeader(restful.HEADER_LastModified, resource.LastModified.Format(time.RFC3339Nano))
-	w.AddHeader("ETag", strconv.Itoa(resource.Revision))
+	w.AddHeader(restful.HEADER_LastModified, res.LastModified.Format(time.RFC3339Nano))
+	w.AddHeader("ETag", strconv.Itoa(res.Revision))
 
 	// Output the response body.
-	w.WriteEntity(resource)
+	w.WriteEntity(res)
 }
 
 // Update the resource.
@@ -106,8 +105,8 @@ func (res *Resource) put(r *restful.Request, w *restful.Response) {
 	} else {
 
 		// Marshall the entity from the request into a struct.
-		resource := new(Resource)
-		err = r.ReadEntity(&resource)
+//		resource := new(Resource)
+		err = r.ReadEntity(res)
 		if err != nil {
 			w.AddHeader("Content-Type", "text/plain")
 			w.WriteErrorString(http.StatusNotAcceptable, err.Error())
@@ -149,11 +148,11 @@ func (res *Resource) put(r *restful.Request, w *restful.Response) {
 		}
 
 		// Keep track of the last modification date.
-		resource.LastModified = time.Now()
-		resource.Revision = old.Revision + 1
+		res.LastModified = time.Now()
+		res.Revision = old.Revision + 1
 
 		// Attempt to overwrite the old entity.
-		_, err = datastore.Put(c, k, resource)
+		_, err = datastore.Put(c, k, res)
 		if err != nil {
 			w.AddHeader("Content-Type", "text/plain")
 			w.WriteErrorString(http.StatusInternalServerError, err.Error())
@@ -161,8 +160,8 @@ func (res *Resource) put(r *restful.Request, w *restful.Response) {
 		}
 
 		// Set the headers.
-		w.AddHeader(restful.HEADER_LastModified, resource.LastModified.Format(time.RFC3339Nano))
-		w.AddHeader("ETag", strconv.Itoa(resource.Revision))
+		w.AddHeader(restful.HEADER_LastModified, res.LastModified.Format(time.RFC3339Nano))
+		w.AddHeader("ETag", strconv.Itoa(res.Revision))
 
 		// Let them know it succeeded.
 		w.WriteHeader(http.StatusNoContent)

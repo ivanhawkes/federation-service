@@ -20,7 +20,7 @@ func (res *Resource) RegisterShard() {
 	ws := new(restful.WebService)
 
 	ws.
-		Path(Resource {}.ShardRootPath ()).
+		Path(res.ShardRootPath ()).
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 
@@ -29,7 +29,7 @@ func (res *Resource) RegisterShard() {
 		Doc("Read a resource").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
 		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")).
-		Writes(Resource{}))
+		Writes(*res))
 
 	ws.Route(ws.HEAD("/{resource-id}").To(res.head).
 		// Swagger documentation.
@@ -93,9 +93,7 @@ func (res *Resource) get(r *restful.Request, w *restful.Response) {
 		}
 
 		// Retrieve the entity from the datastore.
-		resource := new(Resource)
-
-		if err := datastore.Get(c, k, resource); err != nil {
+		if err := datastore.Get(c, k, res); err != nil {
 			if err.Error() == "datastore: no such entity" {
 				w.AddHeader("Content-Type", "text/plain")
 				w.WriteErrorString(http.StatusNotFound, err.Error())
@@ -109,21 +107,21 @@ func (res *Resource) get(r *restful.Request, w *restful.Response) {
 		}
 
 		// Set their Key.
-		resource.Key = k.Encode()
+		res.Key = k.Encode()
 
 		// Provide a link for ease of API usage.
-		resource.Link.Rel = "self"
-		resource.Link.Href = resource.ShardRootPath () + k.Encode()
+		res.Link.Rel = "self"
+		res.Link.Href = res.ShardRootPath () + k.Encode()
 
 		// Set the headers.
-		w.AddHeader(restful.HEADER_LastModified, resource.LastModified.Format(time.RFC3339Nano))
-		w.AddHeader("ETag", strconv.Itoa(resource.Revision))
+		w.AddHeader(restful.HEADER_LastModified, res.LastModified.Format(time.RFC3339Nano))
+		w.AddHeader("ETag", strconv.Itoa(res.Revision))
 
 		// Cache Control: By allowing a short cache time here we can reduce database calls and cost.
 		w.AddHeader("Cache-Control", "max-age=14400,must-revalidate")
 
 		// Output the response body.
-		w.WriteEntity(resource)
+		w.WriteEntity(res)
 	}
 }
 
@@ -168,8 +166,7 @@ func (res *Resource) head(r *restful.Request, w *restful.Response) {
 		}
 
 		// Retrieve the entity from the datastore.
-		resource := new(Resource)
-		if err := datastore.Get(c, k, resource); err != nil {
+		if err := datastore.Get(c, k, res); err != nil {
 			if err.Error() == "datastore: no such entity" {
 				w.AddHeader("Content-Type", "text/plain")
 				w.WriteErrorString(http.StatusNotFound, err.Error())
@@ -183,15 +180,15 @@ func (res *Resource) head(r *restful.Request, w *restful.Response) {
 		}
 
 		// Set their Key.
-		resource.Key = k.Encode()
+		res.Key = k.Encode()
 
 		// Provide a link for ease of API usage.
-		resource.Link.Rel = "self"
-		resource.Link.Href = resource.ShardRootPath () + k.Encode()
+		res.Link.Rel = "self"
+		res.Link.Href = res.ShardRootPath () + k.Encode()
 
 		// Set the headers.
-		w.AddHeader(restful.HEADER_LastModified, resource.LastModified.Format(time.RFC3339Nano))
-		w.AddHeader("ETag", strconv.Itoa(resource.Revision))
+		w.AddHeader(restful.HEADER_LastModified, res.LastModified.Format(time.RFC3339Nano))
+		w.AddHeader("ETag", strconv.Itoa(res.Revision))
 
 		// Cache Control: By allowing a short cache time here we can reduce database calls and cost.
 		w.AddHeader("Cache-Control", "max-age=14400,must-revalidate")
