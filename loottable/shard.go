@@ -120,7 +120,7 @@ func (api ResourceApi) get(r *restful.Request, w *restful.Response) {
 		w.AddHeader("ETag", strconv.Itoa(resource.Revision))
 
 		// Cache Control: By allowing a short cache time here we can reduce database calls and cost.
-		w.AddHeader("Cache-Control", "max-age=3600,must-revalidate")
+		w.AddHeader("Cache-Control", "max-age=14400,must-revalidate")
 
 		// Output the response body.
 		w.WriteEntity(resource)
@@ -194,7 +194,7 @@ func (api ResourceApi) head(r *restful.Request, w *restful.Response) {
 		w.AddHeader("ETag", strconv.Itoa(resource.Revision))
 
 		// Cache Control: By allowing a short cache time here we can reduce database calls and cost.
-		w.AddHeader("Cache-Control", "max-age=3600,must-revalidate")
+		w.AddHeader("Cache-Control", "max-age=14400,must-revalidate")
 
 		// No response body required for this verb.
 		w.WriteHeader(http.StatusNoContent)
@@ -239,7 +239,7 @@ func (api ResourceApi) listSummary(r *restful.Request, w *restful.Response) {
 	}
 
 	// Cache Control: By allowing a short cache time here we can reduce database calls and cost.
-	w.AddHeader("Cache-Control", "max-age=3600,must-revalidate")
+	w.AddHeader("Cache-Control", "max-age=900,must-revalidate")
 	w.AddHeader(restful.HEADER_LastModified, time.Now().Format(time.RFC3339Nano))
 
 	w.WriteEntity(result)
@@ -281,7 +281,7 @@ func (api ResourceApi) listAll(r *restful.Request, w *restful.Response) {
 	}
 
 	// Cache Control: By allowing a short cache time here we can reduce database calls and cost.
-	w.AddHeader("Cache-Control", "max-age=3600,must-revalidate")
+	w.AddHeader("Cache-Control", "max-age=900,must-revalidate")
 	w.AddHeader(restful.HEADER_LastModified, time.Now().Format(time.RFC3339Nano))
 
 	w.WriteEntity(result)
