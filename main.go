@@ -16,5 +16,5 @@ func init() {
 	realms.RealmApi{}.Register()
 	users.UserApi{}.Register()
 	zones.ZoneApi{}.Register()
-	loottable.ResourceApi{}.Register()
+	loottable.Resource{}.Register()
 }

@@ -16,7 +16,7 @@ func init() {
 
 // Register the routes we require for this resource type.
 //
-func (api ResourceApi) RegisterShard() {
+func (res *Resource) RegisterShard() {
 	ws := new(restful.WebService)
 
 	ws.
@@ -24,26 +24,26 @@ func (api ResourceApi) RegisterShard() {
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 
-	ws.Route(ws.GET("/{resource-id}").To(api.get).
+	ws.Route(ws.GET("/{resource-id}").To(res.get).
 		// Swagger documentation.
 		Doc("Read a resource").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
 		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")).
 		Writes(Resource{}))
 
-	ws.Route(ws.HEAD("/{resource-id}").To(api.head).
+	ws.Route(ws.HEAD("/{resource-id}").To(res.head).
 		// Swagger documentation.
 		Doc("Returns the headers for a resource").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
 		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")))
 
-	ws.Route(ws.GET("/summary").To(api.listSummary).
+	ws.Route(ws.GET("/summary").To(res.listSummary).
 		// Swagger documentation.
 		Doc("Summary list of all resources").
 		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")).
 		Writes(ListSummary{}))
 
-	ws.Route(ws.GET("/all").To(api.listAll).
+	ws.Route(ws.GET("/all").To(res.listAll).
 		// Swagger documentation.
 		Doc("Comprehensive list of all resources").
 		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")).
@@ -54,11 +54,11 @@ func (api ResourceApi) RegisterShard() {
 
 // Read a resource
 //
-func (api ResourceApi) get(r *restful.Request, w *restful.Response) {
+func (res *Resource) get(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Grab the key and validate it.
-	if k, err := api.getKey(r, w); err != nil {
+	if k, err := res.getKey(r, w); err != nil {
 		return
 	} else {
 
@@ -129,11 +129,11 @@ func (api ResourceApi) get(r *restful.Request, w *restful.Response) {
 
 // Returns the headers for a resource
 //
-func (api ResourceApi) head(r *restful.Request, w *restful.Response) {
+func (res *Resource) head(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Grab the key and validate it.
-	if k, err := api.getKey(r, w); err != nil {
+	if k, err := res.getKey(r, w); err != nil {
 		return
 	} else {
 
@@ -204,7 +204,7 @@ func (api ResourceApi) head(r *restful.Request, w *restful.Response) {
 
 // Summary list of all resources
 //
-func (api ResourceApi) listSummary(r *restful.Request, w *restful.Response) {
+func (res *Resource) listSummary(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	var q *datastore.Query
@@ -248,7 +248,7 @@ func (api ResourceApi) listSummary(r *restful.Request, w *restful.Response) {
 
 // Comprehensive list of all resources
 //
-func (api ResourceApi) listAll(r *restful.Request, w *restful.Response) {
+func (res *Resource) listAll(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	var result ListComprehensive

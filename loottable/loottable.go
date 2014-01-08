@@ -65,23 +65,20 @@ func (s Shallow) ClientRootPath () string {
 	return "/api/client/" + s.Kind ()
 }
 
-type ResourceApi struct {
-}
-
 func init() {
 	log.Printf("Registering " + kind)
 }
 
 // Register the routes we require for this resource type.
 //
-func (api ResourceApi) Register() {
-	api.RegisterAdmin()
-	api.RegisterShard()
+func (res Resource) Register() {
+	res.RegisterAdmin()
+	res.RegisterShard()
 }
 
 // Attempts to create a valid key for a resource.
 //
-func (api *ResourceApi) getKey(r *restful.Request, w *restful.Response) (*datastore.Key, error) {
+func (*Resource) getKey(r *restful.Request, w *restful.Response) (*datastore.Key, error) {
 
 	// Decode the request parameter to determine the key for the entity.
 	k, err := datastore.DecodeKey(r.PathParameter("resource-id"))

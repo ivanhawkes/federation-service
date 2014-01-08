@@ -16,7 +16,7 @@ func init() {
 
 // Register the routes we require for this resource type.
 //
-func (api ResourceApi) RegisterAdmin() {
+func (res *Resource) RegisterAdmin() {
 	ws := new(restful.WebService)
 
 	ws.
@@ -24,14 +24,14 @@ func (api ResourceApi) RegisterAdmin() {
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 
-	ws.Route(ws.POST("").To(api.post).
+	ws.Route(ws.POST("").To(res.post).
 		// Swagger documentation.
 		Doc("Create a new resource").
 		Param(ws.BodyParameter("loottable.Resource", "representation of a resource").DataType("loottable.Resource")).
 		Reads(Resource{}).
 		Writes(Resource{}))
 
-	ws.Route(ws.PUT("/{resource-id}").To(api.put).
+	ws.Route(ws.PUT("/{resource-id}").To(res.put).
 		// Swagger documentation.
 		Doc("Update an existing resource").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
@@ -39,7 +39,7 @@ func (api ResourceApi) RegisterAdmin() {
 		Param(ws.HeaderParameter("If-Unmodified-Since", "Conditional modifier").DataType("RFC3339Nano Date")).
 		Reads(Resource{}))
 
-	ws.Route(ws.DELETE("/{resource-id}").To(api.delete).
+	ws.Route(ws.DELETE("/{resource-id}").To(res.delete).
 		// Swagger documentation.
 		Doc("Delete an existing resource").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
@@ -50,7 +50,7 @@ func (api ResourceApi) RegisterAdmin() {
 
 // Create a new resource.
 //
-func (api *ResourceApi) post(r *restful.Request, w *restful.Response) {
+func (*Resource) post(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Marshall the entity from the request into a struct.
@@ -97,11 +97,11 @@ func (api *ResourceApi) post(r *restful.Request, w *restful.Response) {
 
 // Update the resource.
 //
-func (api *ResourceApi) put(r *restful.Request, w *restful.Response) {
+func (res *Resource) put(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Grab the key and validate it.
-	if k, err := api.getKey(r, w); err != nil {
+	if k, err := res.getKey(r, w); err != nil {
 		return
 	} else {
 
@@ -172,11 +172,11 @@ func (api *ResourceApi) put(r *restful.Request, w *restful.Response) {
 
 // Delete the resource.
 //
-func (api *ResourceApi) delete(r *restful.Request, w *restful.Response) {
+func (res *Resource) delete(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
 	// Grab the key and validate it.
-	if k, err := api.getKey(r, w); err != nil {
+	if k, err := res.getKey(r, w); err != nil {
 		return
 	} else {
 
