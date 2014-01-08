@@ -20,7 +20,7 @@ func (api ResourceApi) RegisterAdmin() {
 	ws := new(restful.WebService)
 
 	ws.
-		Path(adminRootPath).
+		Path(Resource {}.AdminRootPath ()).
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 
@@ -80,11 +80,11 @@ func (api *ResourceApi) post(r *restful.Request, w *restful.Response) {
 
 	// Let them know the location of the newly created resource.
 	// TODO: Use a safe Url path append function.
-	w.AddHeader("Location", shardRootPath+"/"+k.Encode())
+	w.AddHeader("Location", resource.ShardRootPath () + k.Encode ())
 
 	// Provide a link for ease of API usage.
 	resource.Link.Rel = "self"
-	resource.Link.Href = shardRootPath + "/" + k.Encode()
+	resource.Link.Href = resource.ShardRootPath () + k.Encode()
 
 	// Set the headers.
 	w.WriteHeader(http.StatusCreated)
@@ -131,19 +131,19 @@ func (api *ResourceApi) put(r *restful.Request, w *restful.Response) {
 
 		// Use conditional put - check LastModified before doing anything.
 		if ifUnmodifiedSince := r.HeaderParameter("If-Unmodified-Since"); ifUnmodifiedSince == "" {
-				w.AddHeader("Content-Type", "text/plain")
-				w.WriteErrorString(http.StatusForbidden, "Unconditional updates are not supported. Please provide 'If-Unmodified-Since' headers.")
-				return
+			w.AddHeader("Content-Type", "text/plain")
+			w.WriteErrorString(http.StatusForbidden, "Unconditional updates are not supported. Please provide 'If-Unmodified-Since' headers.")
+			return
 		} else {
 			if t, err := time.Parse(time.RFC3339Nano, ifUnmodifiedSince); err != nil {
 				w.AddHeader("Content-Type", "text/plain")
 				w.WriteErrorString(http.StatusNotAcceptable, err.Error())
 				return
 			} else {
-				if t.Before (old.LastModified) {
+				if t.Before(old.LastModified) {
 					w.AddHeader("Content-Type", "text/plain")
 					w.WriteErrorString(http.StatusPreconditionFailed, "The resource has been modified recently. Refresh your copy and try again if updating is still desireable.")
-					return				
+					return
 				}
 			}
 		}
@@ -197,19 +197,19 @@ func (api *ResourceApi) delete(r *restful.Request, w *restful.Response) {
 
 		// Use conditional delete - check LastModified before doing anything.
 		if ifUnmodifiedSince := r.HeaderParameter("If-Unmodified-Since"); ifUnmodifiedSince == "" {
-				w.AddHeader("Content-Type", "text/plain")
-				w.WriteErrorString(http.StatusForbidden, "Unconditional deletes are not supported. Please provide 'If-Unmodified-Since' headers.")
-				return
+			w.AddHeader("Content-Type", "text/plain")
+			w.WriteErrorString(http.StatusForbidden, "Unconditional deletes are not supported. Please provide 'If-Unmodified-Since' headers.")
+			return
 		} else {
 			if t, err := time.Parse(time.RFC3339Nano, ifUnmodifiedSince); err != nil {
 				w.AddHeader("Content-Type", "text/plain")
 				w.WriteErrorString(http.StatusNotAcceptable, err.Error())
 				return
 			} else {
-				if t.Before (old.LastModified) {
+				if t.Before(old.LastModified) {
 					w.AddHeader("Content-Type", "text/plain")
 					w.WriteErrorString(http.StatusPreconditionFailed, "The resource has been modified recently. Refresh your copy and try again if deletion is still desireable.")
-					return				
+					return
 				}
 			}
 		}

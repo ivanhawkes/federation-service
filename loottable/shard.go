@@ -20,7 +20,7 @@ func (api ResourceApi) RegisterShard() {
 	ws := new(restful.WebService)
 
 	ws.
-		Path(shardRootPath).
+		Path(Resource {}.ShardRootPath ()).
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML)
 
@@ -94,6 +94,7 @@ func (api ResourceApi) get(r *restful.Request, w *restful.Response) {
 
 		// Retrieve the entity from the datastore.
 		resource := new(Resource)
+
 		if err := datastore.Get(c, k, resource); err != nil {
 			if err.Error() == "datastore: no such entity" {
 				w.AddHeader("Content-Type", "text/plain")
@@ -112,7 +113,7 @@ func (api ResourceApi) get(r *restful.Request, w *restful.Response) {
 
 		// Provide a link for ease of API usage.
 		resource.Link.Rel = "self"
-		resource.Link.Href = shardRootPath + "/" + k.Encode()
+		resource.Link.Href = resource.ShardRootPath () + k.Encode()
 
 		// Set the headers.
 		w.AddHeader(restful.HEADER_LastModified, resource.LastModified.Format(time.RFC3339Nano))
@@ -186,7 +187,7 @@ func (api ResourceApi) head(r *restful.Request, w *restful.Response) {
 
 		// Provide a link for ease of API usage.
 		resource.Link.Rel = "self"
-		resource.Link.Href = shardRootPath + "/" + k.Encode()
+		resource.Link.Href = resource.ShardRootPath () + k.Encode()
 
 		// Set the headers.
 		w.AddHeader(restful.HEADER_LastModified, resource.LastModified.Format(time.RFC3339Nano))
@@ -233,7 +234,7 @@ func (api ResourceApi) listSummary(r *restful.Request, w *restful.Response) {
 		for i, k := range keys {
 			result.Entry[i].Key = k.Encode()
 			result.Entry[i].Link.Rel = "self"
-			result.Entry[i].Link.Href = shardRootPath + "/" + k.Encode()
+			result.Entry[i].Link.Href = result.Entry[i].ShardRootPath () + "/" + k.Encode()
 		}
 	}
 
@@ -275,7 +276,7 @@ func (api ResourceApi) listAll(r *restful.Request, w *restful.Response) {
 		for i, k := range keys {
 			result.Entry[i].Key = k.Encode()
 			result.Entry[i].Link.Rel = "self"
-			result.Entry[i].Link.Href = shardRootPath + "/" + k.Encode()
+			result.Entry[i].Link.Href = result.Entry[i].ShardRootPath () + "/" + k.Encode()
 		}
 	}
 

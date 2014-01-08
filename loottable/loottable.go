@@ -2,17 +2,17 @@ package loottable
 
 import (
 	"appengine/datastore"
-	"common"
 	"github.com/emicklei/go-restful"
 	"log"
 	"net/http"
+	"resource"
 )
 
 const (
 	kind           = "loottable"
-	adminRootPath  = "/admin/" + kind
-	shardRootPath  = "/shard/" + kind
-	clientRootPath = "/my/" + kind
+	adminRootPath  = "/api/client/admin/" + kind
+	shardRootPath  = "/api/shard/" + kind
+	clientRootPath = "/api/client/" + kind
 )
 
 // Status values for records of this resource type.
@@ -31,7 +31,7 @@ type ProbabilityEntry struct {
 }
 
 type Shallow struct {
-	common.BaseResource
+	resource.BaseResource
 	Name string `json:"name" xml:"name"`
 }
 
@@ -47,6 +47,22 @@ type ListSummary struct {
 
 type ListComprehensive struct {
 	Entry []Resource `json:"entry" xml:"entry"`
+}
+
+func (s Shallow) Kind () string {
+	return kind
+}
+
+func (s Shallow) AdminRootPath () string {
+	return "/api/client/admin/" + s.Kind ()
+}
+
+func (s Shallow) ShardRootPath () string {
+	return "/api/shard/" + s.Kind ()
+}
+
+func (s Shallow) ClientRootPath () string {
+	return "/api/client/" + s.Kind ()
 }
 
 type ResourceApi struct {
@@ -65,7 +81,7 @@ func (api ResourceApi) Register() {
 
 // Attempts to create a valid key for a resource.
 //
-func (api ResourceApi) getKey(r *restful.Request, w *restful.Response) (*datastore.Key, error) {
+func (api *ResourceApi) getKey(r *restful.Request, w *restful.Response) (*datastore.Key, error) {
 
 	// Decode the request parameter to determine the key for the entity.
 	k, err := datastore.DecodeKey(r.PathParameter("resource-id"))
