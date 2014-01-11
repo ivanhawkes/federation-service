@@ -1,4 +1,4 @@
-package loottable
+package characterappearance
 
 import (
 	"appengine"

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"characterappearance"
 	"characters"
 	"factions"
 	"loottable"
@@ -17,4 +18,5 @@ func init() {
 	users.UserApi{}.Register()
 	zones.ZoneApi{}.Register()
 	loottable.Resource{}.Register()
+	characterappearance.Resource{}.Register()
 }

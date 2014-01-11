@@ -3,16 +3,9 @@ package loottable
 import (
 	"appengine/datastore"
 	"github.com/emicklei/go-restful"
-	"log"
+	//	"log"
 	"net/http"
 	"resource"
-)
-
-const (
-	kind           = "loottable"
-	adminRootPath  = "/api/client/admin/" + kind
-	shardRootPath  = "/api/shard/" + kind
-	clientRootPath = "/api/client/" + kind
 )
 
 // Status values for records of this resource type.
@@ -49,24 +42,23 @@ type ListComprehensive struct {
 	Entry []Resource `json:"entry" xml:"entry"`
 }
 
-func (s Shallow) Kind () string {
-	return kind
+func (s Shallow) Kind() string {
+	return "loottable"
 }
 
-func (s Shallow) AdminRootPath () string {
-	return "/api/client/admin/" + s.Kind ()
+func (s Shallow) AdminRootPath() string {
+	return "/api/client/admin/" + s.Kind() + "/"
 }
 
-func (s Shallow) ShardRootPath () string {
-	return "/api/shard/" + s.Kind ()
+func (s Shallow) ShardRootPath() string {
+	return "/api/shard/" + s.Kind() + "/"
 }
 
-func (s Shallow) ClientRootPath () string {
-	return "/api/client/" + s.Kind ()
+func (s Shallow) ClientRootPath() string {
+	return "/api/client/" + s.Kind() + "/"
 }
 
 func init() {
-	log.Printf("Registering " + kind)
 }
 
 // Register the routes we require for this resource type.
@@ -78,7 +70,7 @@ func (res Resource) Register() {
 
 // Attempts to create a valid key for a resource.
 //
-func (*Resource) getKey(r *restful.Request, w *restful.Response) (*datastore.Key, error) {
+func (res *Resource) getKey(r *restful.Request, w *restful.Response) (*datastore.Key, error) {
 
 	// Decode the request parameter to determine the key for the entity.
 	k, err := datastore.DecodeKey(r.PathParameter("resource-id"))
@@ -89,7 +81,7 @@ func (*Resource) getKey(r *restful.Request, w *restful.Response) (*datastore.Key
 	}
 
 	// Check for shenanigans with the key.
-	if k.Kind() != kind {
+	if k.Kind() != res.Kind() {
 		w.AddHeader("Content-Type", "text/plain")
 		w.WriteErrorString(http.StatusBadRequest, "The key is not valid for this type of resource.\n")
 		return nil, err

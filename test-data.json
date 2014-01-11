@@ -101,3 +101,84 @@ ag9zfnNzLWZlZGVyYXRpb25yFgsSCWxvb3R0YWJsZRiAgICAgOSRCgw - live
 
 ag9zfnNzLWZlZGVyYXRpb25yFgsSCWxvb3R0YWJsZRiAgICAgPKICgw - live
 ahFkZXZ-c3MtZmVkZXJhdGlvbnIWCxIJbG9vdHRhYmxlGICAgICAwK8KDA
+
+
+# Character Appearance
+{
+  "character_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIWCxIJbG9vdHRhYmxlGICAgICAwK8KDA",
+  "model": {
+    "head_model": 1,
+    "torso_model": 3,
+    "height": 172.0,
+    "weight": 80.0,
+    "phsyique": 0.5
+  },
+  "mouth": {
+    "position": 0.5,
+    "width": 0.7,
+    "lip_thickness_upper": 0.5,
+    "lip_thickness_lower": 0.5,
+    "gape": 0.5,
+    "pucker": 0.5,
+    "mouth_corners": 0
+  },
+  "nose": {
+    "extension": 0.5,
+    "noze_size": 0.5,
+    "bridge": 0.5,
+    "nostril_width": 0.5,
+    "tip_width": 0.5,
+    "nose_tip": 0.5,
+    "nostril_flare": 0.5,
+    "bend": 0
+  },
+  "ears": {
+    "ear_rotation": 0.5,
+    "ear_extention": 0.5,
+    "ear_trim": 0.5,
+    "ear_size": 0
+  },
+  "eyes": {
+    "colour": 0.5,
+    "width": 0.5,
+    "height": 0.5,
+    "shape": 0.5,
+    "separation": 0.5,
+    "angle": 0.5,
+    "inner_brow": 0.5,
+    "outer_brow": 0
+  },
+  "skar": {
+    "skar_head": "over_eye.dds",
+    "skar_body": "claws.dds"
+  },
+  "skin": {
+    "texture_head": "",
+    "texture_body": ""
+  },
+  "tattoo": {
+    "tattoo_head": "",
+    "tattoo_body": ""
+  },
+  "jaw": {
+    "width": 0.5,
+    "length": 0.5,
+    "jut": 0.6
+  },
+  "eyebrows": {
+    "brow_thickness": 0.5,
+    "brow_placement": 0.4
+  },
+  "cheeks": {
+    "width": 0.5,
+    "height": 0.3
+  },
+  "hair": {
+    "hair_style": 4,
+    "primary_colour": 84343,
+    "secondary_colour": 31454
+  },
+  "voice": 1
+}
+
+ahFkZXZ-c3MtZmVkZXJhdGlvbnIgCxITY2hhcmFjdGVyYXBwZWFyYW5jZRiAgICAgICACww
