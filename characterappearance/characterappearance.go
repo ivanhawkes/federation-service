@@ -136,15 +136,15 @@ func (s Shallow) Kind() string {
 }
 
 func (s Shallow) AdminRootPath() string {
-	return "/api/client/admin/" + s.Kind() + "/"
+	return "/api/client/admin/" + s.Kind()
 }
 
 func (s Shallow) ShardRootPath() string {
-	return "/api/shard/" + s.Kind() + "/"
+	return "/api/shard/" + s.Kind()
 }
 
 func (s Shallow) ClientRootPath() string {
-	return "/api/client/" + s.Kind() + "/"
+	return "/api/client/" + s.Kind()
 }
 
 func init() {
@@ -155,6 +155,7 @@ func init() {
 func (res Resource) Register() {
 	res.RegisterAdmin()
 	res.RegisterShard()
+	res.RegisterClient()
 }
 
 // Attempts to create a valid key for a resource.
