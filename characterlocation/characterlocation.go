@@ -1,4 +1,4 @@
-package loottable
+package characterlocation
 
 import (
 	"appengine/datastore"
@@ -10,40 +10,38 @@ import (
 
 // Status values for records of this resource type.
 const (
-	StatusActive = iota
-	StatusDeactivated
-	StatusPendingActivation
-	StatusDeletionPending
-	StatusDeleted
+	StatusThisFederation = iota
+	StatusAnotherFederation
 )
-
-type ProbabilityEntry struct {
-	ItemId      int64   `datastore:"ItemId" json:"item_id" xml:"item-id"`
-	Probability float32 `datastore:"Probability" json:"probability" xml:"probability"`
-	Quantity    int16   `datastore:"Quantity" json:"quantity" xml:"quantity"`
-}
 
 type Shallow struct {
 	resource.BaseResource
-	Name string `json:"name" xml:"name"`
+}
+
+type Position struct {
+	X float32 `json:"x" xml:"x"`
+	Y float32 `json:"y" xml:"y"`
+	Z float32 `json:"z" xml:"z"`
+}
+
+type Direction struct {
+	X float32 `json:"x" xml:"x"`
+	Y float32 `json:"y" xml:"y"`
+	Z float32 `json:"z" xml:"z"`
 }
 
 type Resource struct {
 	Shallow
-	AllowPreload  bool               `json:"allow_preload" xml:"allow-preload"`
-	Probabilities []ProbabilityEntry `json:"probabilities" xml:"probabilities"`
-}
-
-type ListSummary struct {
-	Entry []Shallow `json:"entry" xml:"entry"`
-}
-
-type ListComprehensive struct {
-	Entry []Resource `json:"entry" xml:"entry"`
+	CharacterKey datastore.Key `json:"character_key" xml:"character-key"`
+	RealmKey     datastore.Key `json:"realm_key" xml:"realm-key"`
+	ZoneKey      datastore.Key `json:"zone_key" xml:"zone-key"`
+	ShardKey     datastore.Key `json:"shard_key" xml:"shard-key"`
+	Position     Position      `json:"position" xml:"position"`
+	Direction    Direction     `json:"direction" xml:"direction"`
 }
 
 func (s Shallow) Kind() string {
-	return "loottable"
+	return "characterlocation"
 }
 
 func (s Shallow) AdminRootPath() string {
@@ -63,7 +61,7 @@ func (s Shallow) ClientRootPath() string {
 }
 
 func (s Shallow) PreferredLink(k *datastore.Key) string {
-	return s.ShardRootPath() + "/" + k.Encode()
+	return s.ClientRootPath() + "/" + k.Encode()
 }
 
 func init() {
@@ -75,6 +73,8 @@ func (res Resource) Register() {
 	log.Printf(Shallow{}.Kind() + " Register")
 	res.RegisterAdmin()
 	res.RegisterShard()
+	res.RegisterAccount()
+	res.RegisterClient()
 }
 
 // Attempts to create a valid key for a resource.

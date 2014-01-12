@@ -3,7 +3,7 @@ package characterappearance
 import (
 	"appengine/datastore"
 	"github.com/emicklei/go-restful"
-	//	"log"
+	"log"
 	"net/http"
 	"resource"
 )
@@ -161,6 +161,7 @@ func init() {
 // Register the routes we require for this resource type.
 //
 func (res Resource) Register() {
+	log.Printf(Shallow{}.Kind() + " Register")
 	res.RegisterAdmin()
 	res.RegisterShard()
 	res.RegisterAccount()
