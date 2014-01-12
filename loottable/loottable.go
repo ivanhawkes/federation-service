@@ -47,11 +47,15 @@ func (s Shallow) Kind() string {
 }
 
 func (s Shallow) AdminRootPath() string {
-	return "/api/client/admin/" + s.Kind()
+	return "/api/admin/" + s.Kind()
 }
 
 func (s Shallow) ShardRootPath() string {
 	return "/api/shard/" + s.Kind()
+}
+
+func (s Shallow) AccountRootPath() string {
+	return "/api/account/" + s.Kind()
 }
 
 func (s Shallow) ClientRootPath() string {

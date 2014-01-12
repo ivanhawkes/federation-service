@@ -24,23 +24,27 @@ handlers:
   static_files: static/swagger/\1/\2
   upload: static/swagger/(.*?)/(.*\.(js|html|css))
 
-# Admin features
-- url: /admin/.*
-  script: _go_app
-#  login: admin
-
 # Some admin thing I think?
 - url: /_ah/spi/.*
   script: _go_app
 
-# Shard API
-- url: /shard/.*
+# Admin features, for database level admins.
+- url: /api/admin/.*
+  script: _go_app
+#  login: admin
+
+# Shard API - for shard servers, protected using tokens / sessions.
+- url: /api/shard/.*
   script: _go_app
 
-# Client API
-- url: /my/.*
+# Client API - for clients who are logged in and registered.
+- url: /api/account/.*
   script: _go_app
   login: required
+
+# Client API - for all clients.
+- url: /api/client/.*
+  script: _go_app
 
 # Everything else
 - url: /.*

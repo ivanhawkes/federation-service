@@ -24,8 +24,9 @@ type BaseResource struct {
 // By implementing this simple interface, a resource type can take advantage of generic routines
 // to manage the datastore for their resource type.
 type ResourceManager interface {
-	Kind() string
-	AdminRootPath() string
-	ShardRootPath() string
-	ClientRootPath() string
+	Kind() string            // The 'kind' of resource
+	AdminRootPath() string   // The root path of any routines only an admin can execute
+	ShardRootPath() string   // The root path of any routines only a shard server can execute
+	AccountRootPath() string // The root path of any routines only a logged in user with an active account can execute
+	ClientRootPath() string  // The root path of any routines executable by any client
 }
