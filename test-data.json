@@ -229,3 +229,51 @@ ahFkZXZ-c3MtZmVkZXJhdGlvbnIgCxITY2hhcmFjdGVyYXBwZWFyYW5jZRiAgICAgICACgw
 
 ahFkZXZ-c3MtZmVkZXJhdGlvbnIeCxIRY2hhcmFjdGVybG9jYXRpb24YgICAgIDArwoM
 ahFkZXZ-c3MtZmVkZXJhdGlvbnIeCxIRY2hhcmFjdGVybG9jYXRpb24YgICAgIDArwkM
+
+
+# Storage Container
+{
+  "class": "Character",
+  "name": "Character 01",
+  "owner_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIgCxITY2hhcmFjdGVyYXBwZWFyYW5jZRiAgICAgICACgw",
+  "slot_max": 16
+}
+
+{
+  "class": "Character",
+  "name": "Character 02",
+  "owner_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIeCxIRY2hhcmFjdGVybG9jYXRpb24YgICAgIDArwkM",
+  "slot_max": 16
+}
+
+{
+  "class": "Bank",
+  "name": "Bank 01",
+  "owner_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIeCxIRY2hhcmFjdGVybG9jYXRpb24YgICAgIDArwkM",
+  "slot_max": 24
+}
+
+{
+  "class": "Resource",
+  "name": "Resource.Ore",
+  "owner_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIeCxIRY2hhcmFjdGVybG9jYXRpb24YgICAgIDArwkM",
+  "slot_max": 32
+}
+
+ahFkZXZ-c3MtZmVkZXJhdGlvbnIdCxIQc3RvcmFnZWNvbnRhaW5lchiAgICAgOCXCQw
+
+
+# Storage item
+
+{
+  "owner_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIdCxIQc3RvcmFnZWNvbnRhaW5lchiAgICAgOCXCQw",
+  "storage_container_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIdCxIQc3RvcmFnZWNvbnRhaW5lchiAgICAgOCXCQw",
+  "slot_id": 1,
+  "count": 10,
+  "bound_key": "agByBAsSAAw",
+  "manufacture": {
+    "realm_id": 0,
+    "shard_id": 0,
+    "created": "0001-01-01T00:00:00Z"
+  }
+}
