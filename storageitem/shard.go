@@ -1,4 +1,4 @@
-package characterlocation
+package storageitem
 
 import (
 	"appengine"
@@ -38,7 +38,7 @@ func (res *Resource) RegisterShard() {
 	ws.Route(ws.POST("").To(res.post).
 		// Swagger documentation.
 		Doc("Create a new resource").
-		Param(ws.BodyParameter("characterlocation.Resource", "representation of a resource").DataType("characterlocation.Resource")).
+		Param(ws.BodyParameter("storageitem.Resource", "representation of a resource").DataType("storageitem.Resource")).
 		Reads(*res).
 		Writes(*res))
 
@@ -46,7 +46,7 @@ func (res *Resource) RegisterShard() {
 		// Swagger documentation.
 		Doc("Update an existing resource").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
-		Param(ws.BodyParameter("characterlocation.Resource", "representation of a resource").DataType("characterlocation.Resource")).
+		Param(ws.BodyParameter("storageitem.Resource", "representation of a resource").DataType("storageitem.Resource")).
 		Param(ws.HeaderParameter("If-Unmodified-Since", "Conditional modifier").DataType("RFC3339Nano Date")).
 		Reads(*res))
 
@@ -74,7 +74,7 @@ func (res *Resource) post(r *restful.Request, w *restful.Response) {
 
 	// Set some fields that need special handling.
 	res.LastModified = time.Now()
-	res.Status = StatusThisFederation
+	res.Status = StatusActive
 	res.Revision = 1
 
 	// Store the resource.

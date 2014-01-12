@@ -26,7 +26,7 @@ func (res *Resource) RegisterAccount() {
 	ws.Route(ws.POST("").To(res.post).
 		// Swagger documentation.
 		Doc("Create a new resource").
-		Param(ws.BodyParameter("loottable.Resource", "representation of a resource").DataType("loottable.Resource")).
+		Param(ws.BodyParameter("characterappearance.Resource", "representation of a resource").DataType("characterappearance.Resource")).
 		Reads(*res).
 		Writes(*res))
 
@@ -34,7 +34,7 @@ func (res *Resource) RegisterAccount() {
 		// Swagger documentation.
 		Doc("Update an existing resource").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
-		Param(ws.BodyParameter("loottable.Resource", "representation of a resource").DataType("loottable.Resource")).
+		Param(ws.BodyParameter("characterappearance.Resource", "representation of a resource").DataType("characterappearance.Resource")).
 		Param(ws.HeaderParameter("If-Unmodified-Since", "Conditional modifier").DataType("RFC3339Nano Date")).
 		Reads(*res))
 

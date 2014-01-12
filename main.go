@@ -7,6 +7,8 @@ import (
 	"factions"
 	"loottable"
 	"realms"
+	"storagecontainer"
+	"storageitem"
 	"users"
 	"zones"
 )
@@ -21,4 +23,6 @@ func init() {
 	loottable.Resource{}.Register()
 	characterappearance.Resource{}.Register()
 	characterlocation.Resource{}.Register()
+	storagecontainer.Resource{}.Register()
+	storageitem.Resource{}.Register()
 }
