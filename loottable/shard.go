@@ -110,7 +110,7 @@ func (res *Resource) get(r *restful.Request, w *restful.Response) {
 
 		// Provide a link for ease of API usage.
 		res.Link.Rel = "self"
-		res.Link.Href = res.ShardRootPath() + "/" + k.Encode()
+		res.Link.Href = res.PreferredLink(k)
 
 		// Set the headers.
 		w.AddHeader(restful.HEADER_LastModified, res.LastModified.Format(time.RFC3339Nano))
@@ -183,7 +183,7 @@ func (res *Resource) head(r *restful.Request, w *restful.Response) {
 
 		// Provide a link for ease of API usage.
 		res.Link.Rel = "self"
-		res.Link.Href = res.ShardRootPath() + "/" + k.Encode()
+		res.Link.Href = res.PreferredLink(k)
 
 		// Set the headers.
 		w.AddHeader(restful.HEADER_LastModified, res.LastModified.Format(time.RFC3339Nano))
@@ -230,7 +230,7 @@ func (res *Resource) listSummary(r *restful.Request, w *restful.Response) {
 		for i, k := range keys {
 			result.Entry[i].Key = k.Encode()
 			result.Entry[i].Link.Rel = "self"
-			result.Entry[i].Link.Href = result.Entry[i].ShardRootPath() + "/" + k.Encode()
+			result.Entry[i].Link.Href = result.Entry[i].PreferredLink(k)
 		}
 	}
 
@@ -272,7 +272,7 @@ func (res *Resource) listAll(r *restful.Request, w *restful.Response) {
 		for i, k := range keys {
 			result.Entry[i].Key = k.Encode()
 			result.Entry[i].Link.Rel = "self"
-			result.Entry[i].Link.Href = result.Entry[i].ShardRootPath() + "/" + k.Encode()
+			result.Entry[i].Link.Href = result.Entry[i].PreferredLink(k)
 		}
 	}
 

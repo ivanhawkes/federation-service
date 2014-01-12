@@ -78,11 +78,11 @@ func (res *Resource) post(r *restful.Request, w *restful.Response) {
 
 	// Let them know the location of the newly created resource.
 	// TODO: Use a safe Url path append function.
-	w.AddHeader("Location", res.ShardRootPath()+"/"+k.Encode())
+	w.AddHeader("Location", res.PreferredLink(k))
 
 	// Provide a link for ease of API usage.
 	res.Link.Rel = "self"
-	res.Link.Href = res.ShardRootPath() + "/" + k.Encode()
+	res.Link.Href = res.PreferredLink(k)
 
 	// Set the headers.
 	w.WriteHeader(http.StatusCreated)

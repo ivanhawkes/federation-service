@@ -62,6 +62,10 @@ func (s Shallow) ClientRootPath() string {
 	return "/api/client/" + s.Kind()
 }
 
+func (s Shallow) PreferredLink(k *datastore.Key) string {
+	return s.ShardRootPath() + "/" + k.Encode()
+}
+
 func init() {
 }
 

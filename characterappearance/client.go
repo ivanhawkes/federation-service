@@ -98,7 +98,7 @@ func (res *Resource) get(r *restful.Request, w *restful.Response) {
 
 		// Provide a link for ease of API usage.
 		res.Link.Rel = "self"
-		res.Link.Href = res.ClientRootPath() + "/" + k.Encode()
+		res.Link.Href = res.PreferredLink(k)
 
 		// Set the headers.
 		w.AddHeader(restful.HEADER_LastModified, res.LastModified.Format(time.RFC3339Nano))
@@ -171,7 +171,7 @@ func (res *Resource) head(r *restful.Request, w *restful.Response) {
 
 		// Provide a link for ease of API usage.
 		res.Link.Rel = "self"
-		res.Link.Href = res.ClientRootPath() + "/" + k.Encode()
+		res.Link.Href = res.PreferredLink(k)
 
 		// Set the headers.
 		w.AddHeader(restful.HEADER_LastModified, res.LastModified.Format(time.RFC3339Nano))

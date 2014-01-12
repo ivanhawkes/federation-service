@@ -69,7 +69,7 @@ func (res *Resource) listSummary(r *restful.Request, w *restful.Response) {
 		for i, k := range keys {
 			result.Entry[i].Key = k.Encode()
 			result.Entry[i].Link.Rel = "self"
-			result.Entry[i].Link.Href = result.Entry[i].ShardRootPath() + "/" + k.Encode()
+			result.Entry[i].Link.Href = result.Entry[i].PreferredLink(k)
 		}
 	}
 
@@ -111,7 +111,7 @@ func (res *Resource) listAll(r *restful.Request, w *restful.Response) {
 		for i, k := range keys {
 			result.Entry[i].Key = k.Encode()
 			result.Entry[i].Link.Rel = "self"
-			result.Entry[i].Link.Href = result.Entry[i].ShardRootPath() + "/" + k.Encode()
+			result.Entry[i].Link.Href = result.Entry[i].PreferredLink(k)
 		}
 	}
 
