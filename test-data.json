@@ -182,3 +182,50 @@ ahFkZXZ-c3MtZmVkZXJhdGlvbnIWCxIJbG9vdHRhYmxlGICAgICAwK8KDA
 }
 
 ahFkZXZ-c3MtZmVkZXJhdGlvbnIgCxITY2hhcmFjdGVyYXBwZWFyYW5jZRiAgICAgICACgw
+
+
+{
+  "last_modified": "2014-01-12T03:38:35.728834Z",
+  "revision": 2,
+  "key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIeCxIRY2hhcmFjdGVybG9jYXRpb24YgICAgIDArwoM",
+  "status": 0,
+  "link": {
+    "rel": "self",
+    "href": "/api/client/characterlocation/ahFkZXZ-c3MtZmVkZXJhdGlvbnIeCxIRY2hhcmFjdGVybG9jYXRpb24YgICAgIDArwoM"
+  },
+  "character_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIgCxITY2hhcmFjdGVyYXBwZWFyYW5jZRiAgICAgICACgw",
+  "realm_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIgCxITY2hhcmFjdGVyYXBwZWFyYW5jZRiAgICAgICACgw",
+  "zone_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIgCxITY2hhcmFjdGVyYXBwZWFyYW5jZRiAgICAgICACgw",
+  "shard_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIgCxITY2hhcmFjdGVyYXBwZWFyYW5jZRiAgICAgICACgw",
+  "position": {
+    "x": 13,
+    "y": 23,
+    "z": 33
+  },
+  "direction": {
+    "yaw": 183,
+    "pitch": 3,
+    "roll": 3
+  }
+}
+
+# Character Location
+{
+  "character_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIgCxITY2hhcmFjdGVyYXBwZWFyYW5jZRiAgICAgICACgw",
+  "realm_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIgCxITY2hhcmFjdGVyYXBwZWFyYW5jZRiAgICAgICACgw",
+  "zone_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIgCxITY2hhcmFjdGVyYXBwZWFyYW5jZRiAgICAgICACgw",
+  "shard_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIgCxITY2hhcmFjdGVyYXBwZWFyYW5jZRiAgICAgICACgw",
+  "position": {
+    "x": 10,
+    "y": 20,
+    "z": 30
+  },
+  "direction": {
+    "yaw": 180,
+    "pitch": 0,
+    "roll": 0
+  }
+}
+
+ahFkZXZ-c3MtZmVkZXJhdGlvbnIeCxIRY2hhcmFjdGVybG9jYXRpb24YgICAgIDArwoM
+ahFkZXZ-c3MtZmVkZXJhdGlvbnIeCxIRY2hhcmFjdGVybG9jYXRpb24YgICAgIDArwkM

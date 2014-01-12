@@ -25,9 +25,9 @@ type Position struct {
 }
 
 type Direction struct {
-	X float32 `json:"x" xml:"x"`
-	Y float32 `json:"y" xml:"y"`
-	Z float32 `json:"z" xml:"z"`
+	Yaw float32 `json:"yaw" xml:"yaw"`
+	Pitch float32 `json:"pitch" xml:"pitch"`
+	Roll float32 `json:"roll" xml:"roll"`
 }
 
 type Resource struct {
@@ -71,10 +71,10 @@ func init() {
 //
 func (res Resource) Register() {
 	log.Printf(Shallow{}.Kind() + " Register")
-	res.RegisterAdmin()
+//	res.RegisterAdmin()
 	res.RegisterShard()
-	res.RegisterAccount()
-	res.RegisterClient()
+	// res.RegisterAccount()
+	// res.RegisterClient()
 }
 
 // Attempts to create a valid key for a resource.
