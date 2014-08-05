@@ -8,13 +8,15 @@ const (
 	rootPath = "/item"
 )
 
-// The various states for a resource.
+// Think over the states needed to control an item's lifespan from creation, to placing in the world,
+// controlled by a faction, picked up by a player, placed into inventory, in-use, destroyed.
 const (
-	StatusActivationPending = iota
-	StatusActive
-	StatusDeactivated
-	StatusDeletionPending
-	StatusDeleted
+	StatusCreated = iota
+	StatusWorldOwned
+	StatusFactionOwned
+	StatusCharacterOwned
+	StatusDestroyPending
+	StatusDestroyed
 )
 
 type ItemShallow struct {
