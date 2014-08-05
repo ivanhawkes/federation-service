@@ -10,9 +10,9 @@ import (
 
 // Status values for records of this resource type.
 const (
-	StatusActive = iota
+	StatusActivationPending = iota
+	StatusActive
 	StatusDeactivated
-	StatusPendingActivation
 	StatusDeletionPending
 	StatusDeleted
 )
@@ -23,21 +23,21 @@ type Shallow struct {
 
 type Resource struct {
 	Shallow
-	
+
 	// The owner key is a key belonging to one of these kinds - Character, Faction, Profile, Account
 	OwnerKey datastore.Key `json:"owner_key" xml:"owner-key"`
-	
+
 	// The general class of storage for this container e.g.
 	// "Character", "Character Bank", "Mail", "Faction Bank", "Quest", "Resource"
-	Class     string      `json:"class" xml:"class"`
+	Class string `json:"class" xml:"class"`
 
 	// The specific name of the container e.g.
 	// "Character 01", "Character Bank 01", Mail", "Resource.Ore", "Resource.Herb"
-	Name    string     `json:"name" xml:"name"`
-	
+	Name string `json:"name" xml:"name"`
+
 	// The maximum number of slots available within this container. The client is responsible for managing this figure and
 	// ensuring they don't add more items than there are slots.
-	SlotMax int32  `json:"slot_max" xml:"slot_max"`
+	SlotMax int32 `json:"slot_max" xml:"slot_max"`
 }
 
 func (s Shallow) Kind() string {
@@ -71,7 +71,7 @@ func init() {
 //
 func (res Resource) Register() {
 	log.Printf(Shallow{}.Kind() + " Register")
-//	res.RegisterAdmin()
+	//	res.RegisterAdmin()
 	res.RegisterShard()
 	// res.RegisterAccount()
 	// res.RegisterClient()

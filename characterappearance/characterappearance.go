@@ -10,9 +10,9 @@ import (
 
 // Status values for records of this resource type.
 const (
-	StatusActive = iota
+	StatusActivationPending = iota
+	StatusActive
 	StatusDeactivated
-	StatusPendingActivation
 	StatusDeletionPending
 	StatusDeleted
 )

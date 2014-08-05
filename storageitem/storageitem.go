@@ -11,9 +11,9 @@ import (
 
 // Status values for records of this resource type.
 const (
-	StatusActive = iota
+	StatusActivationPending = iota
+	StatusActive
 	StatusDeactivated
-	StatusPendingActivation
 	StatusDeletionPending
 	StatusDeleted
 )
@@ -23,14 +23,14 @@ type Shallow struct {
 }
 
 type Manufacture struct {
-	RealmID	int16 `json:"realm_id" xml:"realm-id"`
-	ShardID	int16 `json:"shard_id" xml:"shard-id"`	
+	RealmID int16     `json:"realm_id" xml:"realm-id"`
+	ShardID int16     `json:"shard_id" xml:"shard-id"`
 	Created time.Time `json:"created" xml:"created"`
 }
 
 type Resource struct {
 	Shallow
-	
+
 	// The owner key is a key belonging to one of these kinds - Character, Faction, Profile, Account
 	OwnerKey datastore.Key `json:"owner_key" xml:"owner-key"`
 
@@ -38,10 +38,10 @@ type Resource struct {
 	StorageContainer datastore.Key `json:"storage_container_key" xml:"storage-container-key"`
 
 	// This needs to be unique. Make sure to update it as required when moving from one container to another.
-	SlotID	int32 `json:"slot_id" xml:"slot-id"`
+	SlotID int32 `json:"slot_id" xml:"slot-id"`
 
 	// A count of how many of the given item are stored in this slot.
-	Count int32  `json:"count" xml:"count"`
+	Count int32 `json:"count" xml:"count"`
 
 	// If the item is bound, then this key will belong to one of these kinds - Character, Faction, Profile, Account
 	BoundKey datastore.Key `json:"bound_key" xml:"bound-key"`
@@ -81,7 +81,7 @@ func init() {
 //
 func (res Resource) Register() {
 	log.Printf(Shallow{}.Kind() + " Register")
-//	res.RegisterAdmin()
+	//	res.RegisterAdmin()
 	res.RegisterShard()
 	// res.RegisterAccount()
 	// res.RegisterClient()

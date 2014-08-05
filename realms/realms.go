@@ -16,9 +16,9 @@ const (
 
 // The various states for a realm resource.
 const (
-	StatusActive = iota
+	StatusActivationPending = iota
+	StatusActive
 	StatusDeactivated
-	StatusPendingActivation
 	StatusDeletionPending
 	StatusDeleted
 )

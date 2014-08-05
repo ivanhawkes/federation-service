@@ -16,9 +16,9 @@ const (
 
 // The various states for a user resource.
 const (
-	StatusActive = iota
+	StatusActivationPending = iota
+	StatusActive
 	StatusDeactivated
-	StatusPermanentlyBanned
 	StatusPendingActivation
 	StatusDeletionPending
 	StatusDeleted
