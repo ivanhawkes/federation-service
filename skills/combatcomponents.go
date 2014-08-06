@@ -31,6 +31,15 @@ const (
 	DamageTypeUnholy
 )
 
+// Different types of healing which might be used in games.
+const (
+	HealTypeQi = iota
+	HealTypePhysical
+	HealTypeHoly
+	HealTypeNature
+	HealTypeSpirit
+)
+
 // The area of affect for the skill.
 const (
 	AreaOfEffectSingleTarget = iota
@@ -86,14 +95,19 @@ type Blind struct {
 	Duration float32
 }
 
+// Player breaks out of crowd control.
 type BreakCC struct {
-}
-
-// Target has their Qi reduced by the Amount given, every second for the duration of the skill.
-// Amount is Qi / second.
-type BurnQi struct {
-	Amount   float32
-	Duration float32
+	BreakCharm      bool
+	BreakFear       bool
+	BreakFlee       bool
+	BreakPolymorph  bool
+	BreakPossession bool
+	BreakBlind      bool
+	BreakSilence    bool
+	BreakSlow       bool
+	BreakSnare      bool
+	BreakStun       bool
+	BreakTaunt      bool
 }
 
 // Combat charge e.g. warriors
@@ -140,16 +154,34 @@ type DoT struct {
 	Stack uint8
 }
 
+// Target is disarmed for the duration.
 type Disarm struct {
 	Duration float32
 }
 
+// Target quakes in fear for the duration.
 type Fear struct {
 	Duration float32
 }
 
+// Target flees in fear for the duration.
 type Flee struct {
 	Duration float32
+}
+
+// Straight up heal given in HPS.
+type Damage struct {
+	HPS float32
+}
+
+// Heal over time.
+type HoT struct {
+	HealType uint8
+	DPS      float32
+	Duration float32
+
+	// Number of times it can stack.
+	Stack uint8
 }
 
 type Knockback struct {
@@ -174,9 +206,18 @@ type Pull struct {
 	Force float32
 }
 
+// Target has their Qi reduced by the Amount given, every second for the duration of the skill.
+// Amount is Qi / second.
+type QiDrain struct {
+	Amount   float32
+	Duration float32
+}
+
 // Restore amount of Qi to the player / party / friendlies.
-type RestoreQi struct {
-	Amount float32
+// Amount is Qi / second.
+type QiRestore struct {
+	Amount   float32
+	Duration float32
 }
 
 // Provides a buff to friendlies.
@@ -193,34 +234,49 @@ type ShoutDebuff struct {
 	Duration float32
 }
 
+// Silence all types of spoken / Qi damage. Damage types that do not rely on a spoken component
+// should be unaffected.
 type Silence struct {
 	Duration float32
 }
 
+// Silence just one type of damage.
 type SilenceDamageType struct {
 	DamageType uint8
 	Duration   float32
 }
 
-type SiphonQi struct {
-	Amount   float32
-	Duration float32
-}
-
+// Slow the target down by the given percentage.
 type Slow struct {
 	Percent  float32
 	Duration float32
 }
 
+// Target is snared in place for the duration.
 type Snare struct {
 	Duration float32
+
+	// True if the player can spin on the spot while snared.
+	CanTurn bool
 }
 
+// Player has been stunned and is unable to react for the duration.
 type Stun struct {
 	Duration float32
 }
 
+// Target is forced to attack the caster for the duration. In some games this might redirect
+// the damage to another player and even reduce it e.g. PVP in SWTOR. For PVE - maybe the same,
+// or maybe the standard model.
+type Taunt struct {
+	Duration float32
+}
+
+// Apply a vulnerability to the damage type for the duration.
 type Vulnerability struct {
 	Amount     float32
 	DamageType uint8
+
+	// Number of times it can stack.
+	Stack uint8
 }
