@@ -87,6 +87,12 @@ type Unique struct {
 	Unique uint8
 }
 
+// Can this item respawn?
+
+type Respawnable struct {
+	Timer uint32 // milliseconds
+}
+
 // Can be interacted with in the world, useable in their inventory.
 
 type Usable struct {
