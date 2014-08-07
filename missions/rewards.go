@@ -1,9 +1,8 @@
 package missions
 
-// import (
-// 	"appengine"
-// 	"appengine/datastore"
-// )
+import (
+	"appengine/datastore"
+)
 
 // Gain XP to get new skill points. XP levels are flat, like in TSW. This is simply a way to evenly
 // distribute skill points over a constant amount of time / effort.
@@ -15,17 +14,17 @@ type RewardXp struct {
 // Types include gold, PVP badges, dungeon badges, etc
 
 type RewardCurrency struct {
-	Type   int64 `json:"type" xml:"Type"`
-	Amount int   `json:"amount" xml:"Amount"`
+	Type   datastore.Key `json:"type" xml:"type"`
+	Amount int           `json:"amount" xml:"amount"`
 }
 
 type RewardItem struct {
-	ItemId int64 `json:"item-id" xml:"ItemId"`
-	Amount int   `json:"amount" xml:"Amount"`
+	ItemId datastore.Key `json:"item_id" xml:"item-id"`
+	Amount int           `json:"amount" xml:"amount"`
 }
 
 type RewardTitle struct {
-	TitleId int64 `json:"title-id" xml:"TitleId"`
+	TitleId datastore.Key `json:"title_id" xml:"title-id"`
 }
 
 //
@@ -33,14 +32,14 @@ type RewardTitle struct {
 // perform a mission to unlock new skill categories.
 
 type RewardSkillPoints struct {
-	Amount int `json:"amount" xml:"Amount"`
+	Amount int `json:"amount" xml:"amount"`
 }
 
 type RewardSkillCategory struct {
-	SkillCategoryId int64 `json:"skill-category-id" xml:"SkillCategoryId"`
+	SkillCategoryId datastore.Key `json:"skill_category_id" xml:"skill-category-id"`
 }
 
 type RewardFaction struct {
-	FactionId int64 `json:"faction-id" xml:"FactionId"`
-	Amount    int   `json:"amount" xml:"Amount"`
+	FactionId datastore.Key `json:"faction_id" xml:"faction-id"`
+	Amount    int           `json:"amount" xml:"amount"`
 }

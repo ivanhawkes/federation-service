@@ -22,7 +22,7 @@ const (
 )
 
 const (
-	Kind     = "Skills"
+	Kind     = "skills"
 	RootPath = "/federation/" + Kind
 )
 

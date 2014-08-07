@@ -35,6 +35,8 @@ type Api struct {
 
 type Resource struct {
 	Name string `json:"name" xml:"name"`
+	Home string `json:"home" xml:"home"`
+	Api  string `json:"api" xml:"api"`
 }
 
 type ResourceMeta struct {
@@ -365,7 +367,7 @@ func listAll(r *restful.Request, w *restful.Response) {
 	// Check if they want to limit the query using a modified since date.
 	if ifModifiedSince := r.HeaderParameter("If-Modified-Since"); ifModifiedSince == "" {
 		q = datastore.NewQuery(Kind).
-			Project("Category", "Subcategory", "Description").
+			Project("Name", "Home", "Api").
 			Filter("Status =", StatusActive)
 	} else {
 		if t, err := time.Parse(time.RFC3339Nano, ifModifiedSince); err != nil {
@@ -374,7 +376,7 @@ func listAll(r *restful.Request, w *restful.Response) {
 			return
 		} else {
 			q = datastore.NewQuery(Kind).
-				Project("Category", "Subcategory", "Description").
+				Project("Name", "Home", "Api").
 				Filter("Status =", StatusActive).
 				Filter("LastModified >", t)
 		}

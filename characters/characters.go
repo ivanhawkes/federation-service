@@ -34,10 +34,10 @@ type Api struct {
 }
 
 type Resource struct {
-	FirstName string `json:"first_name" xml:"first-name"`
-	NickName  string `json:"nick_name" xml:"nick-name"`
-	LastName  string `json:"last_name" xml:"last-name"`
-	FactionId int64  `datastore:"FactionId" json:"faction_id" xml:"faction-id"`
+	FirstName string        `json:"first_name" xml:"first-name"`
+	NickName  string        `json:"nick_name" xml:"nick-name"`
+	LastName  string        `json:"last_name" xml:"last-name"`
+	FactionId datastore.Key `json:"faction_id" xml:"faction-id"`
 }
 
 type ResourceMeta struct {

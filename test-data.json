@@ -20,12 +20,12 @@
 {"name" : "Libera"}
 {"name" : "Tallai"}
 
-# Characters
-{"first_name": "Chloé", "nick_name": "Socks", "last_name": "Goodchild"}
-
 # Factions
 {"name" : "Order of Illuminatus"}
 {"name" : "The Onyx Ascendancy"}
+
+# Characters
+{"first_name": "Chloé", "nick_name": "Socks", "last_name": "Goodchild", "faction_id": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIVCxIIZmFjdGlvbnMYgICAgIDglwkM"}
 
 # Loottables
 {

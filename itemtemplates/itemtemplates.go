@@ -22,7 +22,7 @@ const (
 )
 
 const (
-	Kind     = "ItemTemplates"
+	Kind     = "itemtemplates"
 	RootPath = "/federation/" + Kind
 )
 

@@ -22,7 +22,7 @@ const (
 )
 
 const (
-	Kind     = "Missions"
+	Kind     = "missions"
 	RootPath = "/federation/" + Kind
 )
 

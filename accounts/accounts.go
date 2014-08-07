@@ -35,7 +35,7 @@ const (
 
 const (
 	Kind     = "accounts"
-	RootPath = "/nexus8/" + Kind
+	RootPath = "/federation/" + Kind
 )
 
 func PreferredLink(k *datastore.Key) string {

@@ -10,9 +10,26 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
+- kind: characters
+  properties:
+  - name: __key__
+  - name: LastModified
+
+- kind: realms
+  properties:
+  - name: Status
+  - name: Api
+  - name: Home
+  - name: Name
+
 - kind: realms
   properties:
   - name: Status
   - name: Category
   - name: Description
   - name: Subcategory
+
+- kind: storagecontainers
+  properties:
+  - name: __key__
+  - name: LastModified

@@ -1,12 +1,11 @@
 package missions
 
-// import (
-// 	"appengine"
-// 	"appengine/datastore"
-// )
+import (
+	"appengine/datastore"
+)
 
 type LocationZone struct {
-	ZoneId int64 `json:"zone-id" xml:"ZoneId"`
+	ZoneId datastore.Key `json:"zone_id" xml:"zone-id"`
 }
 
 type LocationXYZ struct {
@@ -24,5 +23,5 @@ type LocationArea struct {
 
 type LocationCharacter struct {
 	LocationZone
-	CharacterId int64 `json:"area" xml:"Area"`
+	CharacterId datastore.Key `json:"character_id" xml:"character-id"`
 }

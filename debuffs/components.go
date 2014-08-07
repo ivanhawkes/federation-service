@@ -1,8 +1,9 @@
 package debuffs
 
-// import (
-// 	"time"
-// )
+import (
+	"appengine/datastore"
+	// 	"time"
+)
 
 // TODO: Implement a cost system...resource points, currency, XP?, skill point?
 
@@ -19,6 +20,6 @@ type Qi struct {
 // Special abilities e.g. curse of agony, shadow word pain
 
 type Skill struct {
-	SkillId  int64
+	SkillId  datastore.Key
 	Duration int32
 }

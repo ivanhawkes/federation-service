@@ -1,30 +1,27 @@
 package missions
 
-// import (
-// 	"appengine"
-// 	"appengine/datastore"
-// )
+import (
+	"appengine/datastore"
+)
 
 type KillXofY struct {
-	Required int   `json:"required" xml:"Required"`
-	Creature int64 `json:"creature" xml:"Creature"`
+	Required   int           `json:"required" xml:"Required"`
+	CreatureId datastore.Key `json:"creature_id" xml:"creature-id"`
 }
 
 // This might be able to be handled by KillXofY with a Required of 1.
 type KillNamedY struct {
-	Creature int64 `json:"creature" xml:"Creature"`
+	Creature datastore.Key `json:"creature_id" xml:"creature-id"`
+}
+
+type OneOrMoreItems struct {
+	Amount int           `json:"amount" xml:"amount"`
+	ItemId datastore.Key `json:"item_id" xml:"item-id"`
 }
 
 // Not efficient, make it use a list for the items and kills.
 type CollectXofY struct {
-	RequiredItem1 int   `json:"required-items-1" xml:"RequiredItem1"`
-	Item1         int64 `json:"item-1" xml:"Item1"`
-	RequiredItem2 int   `json:"required-item-2" xml:"RequiredItem2"`
-	Item2         int64 `json:"item-2" xml:"Item2"`
-	RequiredItem3 int   `json:"required-item-3" xml:"RequiredItem3"`
-	Item3         int64 `json:"item-3" xml:"Item3"`
-	RequiredItem4 int   `json:"required-item-4" xml:"RequiredItem4"`
-	Item4         int64 `json:"item-4" xml:"Item4"`
+	ItemList []OneOrMoreItems
 }
 
 // TODO: Escort mission.
@@ -136,22 +133,22 @@ type LoreLearn struct {
 // Raid
 //
 type RaidCompletion struct {
-	ZoneId int64
+	ZoneId datastore.Key `json:"zone_id" xml:"zone-id"`
 }
 
 type RaidBoss struct {
-	CharacterId int64
+	CharacterId datastore.Key `json:"character_id" xml:"character-id"`
 }
 
 //
 // Dungeon
 //
 type DungeonCompletion struct {
-	ZoneId int64
+	ZoneId datastore.Key `json:"zone_id" xml:"zone-id"`
 }
 
 type DungeonBoss struct {
-	CharacterId int64
+	CharacterId datastore.Key `json:"character_id" xml:"character-id"`
 }
 
 // Get to a location
@@ -163,5 +160,5 @@ type DungeonLocation struct {
 // World boss
 //
 type WorldBoss struct {
-	CharacterId int64
+	CharacterId datastore.Key `json:"character_id" xml:"-id"`
 }
