@@ -1,9 +1,15 @@
+# VERB: register
+{"email": "ivan.hawkes@gmail.com"}
+
+# Accounts
+{"email": "ivan.hawkes@gmail.com", "first_name": "Ivan", "last_name": "Hawkes", "avatar_url": "http://www.gravatar.com/avatar/3c9cc7724ab09dbcf5d82cf573ed0116"}
+
 # Users
 {"first_name": "Ivan", "last_name": "Hawkes", "avatar_url": "http://www.gravatar.com/avatar/3c9cc7724ab09dbcf5d82cf573ed0116"}
 
-	# Profiles
-	{"first_name": "Ivan", "nick_name": "Socks", "last_name": "Hawkes"}
-	{"first_name": "IvanUpdated", "nick_name": "Socks", "last_name": "HawkesUpdated"}
+# Profiles
+{"first_name": "Ivan", "nick_name": "Socks", "last_name": "Hawkes"}
+{"first_name": "IvanUpdated", "nick_name": "Socks", "last_name": "HawkesUpdated"}
 
 # Federations
 # TODO: these will require public / private keys, api keys, urls for the end point services from realms
