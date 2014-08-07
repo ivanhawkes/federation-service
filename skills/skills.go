@@ -22,7 +22,7 @@ const (
 )
 
 const (
-	Kind     = "skills"
+	Kind     = "Skills"
 	RootPath = "/federation/" + Kind
 )
 
@@ -94,7 +94,7 @@ func Register() {
 	ws.Route(ws.POST("").To(post).
 		Doc("Create a new resource").
 		Operation("postSkill").
-		Param(ws.BodyParameter("skill.Resource", "representation of a resource").DataType("skill.Resource")).
+		Param(ws.BodyParameter("Skill.Resource", "representation of a resource").DataType("Skill.Resource")).
 		Reads(ResourceRequest{}).
 		Writes(ResourceResponse{}))
 
@@ -102,7 +102,7 @@ func Register() {
 		Doc("Update an existing resource").
 		Operation("putSkill").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
-		Param(ws.BodyParameter("skill.Resource", "representation of a resource").DataType("skill.Resource")).
+		Param(ws.BodyParameter("Skill.Resource", "representation of a resource").DataType("Skill.Resource")).
 		Param(ws.HeaderParameter("If-Unmodified-Since", "Conditional modifier").DataType("RFC3339Nano Date")).
 		Reads(ResourceRequest{}))
 

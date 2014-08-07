@@ -22,7 +22,7 @@ const (
 )
 
 const (
-	Kind     = "itemtemplates"
+	Kind     = "ItemTemplates"
 	RootPath = "/federation/" + Kind
 )
 
@@ -97,7 +97,7 @@ func Register() {
 	ws.Route(ws.POST("").To(post).
 		Doc("Create a new resource").
 		Operation("postItemTemplate").
-		Param(ws.BodyParameter("itemtemplate.Resource", "representation of a resource").DataType("itemtemplate.Resource")).
+		Param(ws.BodyParameter("ItemTemplate.Resource", "representation of a resource").DataType("ItemTemplate.Resource")).
 		Reads(ResourceRequest{}).
 		Writes(ResourceResponse{}))
 
@@ -105,7 +105,7 @@ func Register() {
 		Doc("Update an existing resource").
 		Operation("putItemTemplate").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
-		Param(ws.BodyParameter("itemtemplate.Resource", "representation of a resource").DataType("itemtemplate.Resource")).
+		Param(ws.BodyParameter("ItemTemplate.Resource", "representation of a resource").DataType("ItemTemplate.Resource")).
 		Param(ws.HeaderParameter("If-Unmodified-Since", "Conditional modifier").DataType("RFC3339Nano Date")).
 		Reads(ResourceRequest{}))
 

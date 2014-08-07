@@ -5,8 +5,8 @@ import (
 	"appengine"
 	"appengine/user"
 	"buffs"
-	"characterappearance"
-	"characterlocation"
+	"characterappearances"
+	"characterlocations"
 	"characters"
 	"debuffs"
 	"factions"
@@ -23,7 +23,6 @@ import (
 	"skills"
 	"storagecontainers"
 	"storageitems"
-	"users"
 	"verbs"
 	"zones"
 )
@@ -58,11 +57,10 @@ func init() {
 	factions.Register()
 	profiles.Register()
 	realms.Register()
-	users.Register()
 	zones.Register()
 
-	characterappearance.Register()
-	characterlocation.Register()
+	characterappearances.Register()
+	characterlocations.Register()
 	loottables.Register()
 	storagecontainers.Register()
 	storageitems.Register()

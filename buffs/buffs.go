@@ -34,7 +34,7 @@ type Api struct {
 }
 
 type Resource struct {
-	// Components that define this buff.
+	// Components that define this Buff.
 	Components []interface{}
 
 	// Icon to display in the UI
@@ -83,12 +83,12 @@ func Register() {
 		Path(RootPath).
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML).
-		Doc("Buffs management.")
+		Doc("Buff management.")
 
 	ws.Route(ws.POST("").To(post).
 		Doc("Create a new resource").
 		Operation("postBuff").
-		Param(ws.BodyParameter("buff.Resource", "representation of a resource").DataType("buff.Resource")).
+		Param(ws.BodyParameter("Buff.Resource", "representation of a resource").DataType("Buff.Resource")).
 		Reads(ResourceRequest{}).
 		Writes(ResourceResponse{}))
 
@@ -96,7 +96,7 @@ func Register() {
 		Doc("Update an existing resource").
 		Operation("putBuff").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
-		Param(ws.BodyParameter("buff.Resource", "representation of a resource").DataType("buff.Resource")).
+		Param(ws.BodyParameter("Buff.Resource", "representation of a resource").DataType("Buff.Resource")).
 		Param(ws.HeaderParameter("If-Unmodified-Since", "Conditional modifier").DataType("RFC3339Nano Date")).
 		Reads(ResourceRequest{}))
 

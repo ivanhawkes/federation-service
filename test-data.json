@@ -11,24 +11,17 @@
 {"first_name": "Ivan", "nick_name": "Socks", "last_name": "Hawkes"}
 {"first_name": "IvanUpdated", "nick_name": "Socks", "last_name": "HawkesUpdated"}
 
-# Federations
-# TODO: these will require public / private keys, api keys, urls for the end point services from realms
-{"name" : "Shattered Screens"}
-{"name" : "World of Warcraft"}
-{"name" : "Age of Conan"}
-{"name" : "Australia"}
+# Realms
+{"name" : "Cloud Shatter", "api" : "https://xxx.yyy.zzz"}
+{"name" : "Queensland", "api" : "https://xxx.yyy.zzz"}
 
-	# Realms
-	{"name" : "Cloud Shatter", "api" : "https://xxx.yyy.zzz"}
-	{"name" : "Queensland", "api" : "https://xxx.yyy.zzz"}
+# Zones
+{"name" : "Quantum Impact"}
+{"name" : "Libera"}
+{"name" : "Tallai"}
 
-		# Zones
-		{"name" : "Quantum Impact"}
-		{"name" : "Libera"}
-		{"name" : "Tallai"}
-
-	# Characters
-	{"first_name": "Chloé", "nick_name": "Socks", "last_name": "Goodchild"}
+# Characters
+{"first_name": "Chloé", "nick_name": "Socks", "last_name": "Goodchild"}
 
 # Factions
 {"name" : "Order of Illuminatus"}
@@ -190,31 +183,6 @@ ahFkZXZ-c3MtZmVkZXJhdGlvbnIWCxIJbG9vdHRhYmxlGICAgICAwK8KDA
 ahFkZXZ-c3MtZmVkZXJhdGlvbnIgCxITY2hhcmFjdGVyYXBwZWFyYW5jZRiAgICAgICACgw
 
 
-{
-  "last_modified": "2014-01-12T03:38:35.728834Z",
-  "revision": 2,
-  "key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIeCxIRY2hhcmFjdGVybG9jYXRpb24YgICAgIDArwoM",
-  "status": 0,
-  "link": {
-    "rel": "self",
-    "href": "/api/client/characterlocation/ahFkZXZ-c3MtZmVkZXJhdGlvbnIeCxIRY2hhcmFjdGVybG9jYXRpb24YgICAgIDArwoM"
-  },
-  "character_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIgCxITY2hhcmFjdGVyYXBwZWFyYW5jZRiAgICAgICACgw",
-  "realm_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIgCxITY2hhcmFjdGVyYXBwZWFyYW5jZRiAgICAgICACgw",
-  "zone_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIgCxITY2hhcmFjdGVyYXBwZWFyYW5jZRiAgICAgICACgw",
-  "shard_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIgCxITY2hhcmFjdGVyYXBwZWFyYW5jZRiAgICAgICACgw",
-  "position": {
-    "x": 13,
-    "y": 23,
-    "z": 33
-  },
-  "direction": {
-    "yaw": 183,
-    "pitch": 3,
-    "roll": 3
-  }
-}
-
 # Character Location
 {
   "character_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIgCxITY2hhcmFjdGVyYXBwZWFyYW5jZRiAgICAgICACgw",
@@ -273,7 +241,7 @@ ahFkZXZ-c3MtZmVkZXJhdGlvbnIdCxIQc3RvcmFnZWNvbnRhaW5lchiAgICAgOCXCQw
 
 {
   "owner_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIdCxIQc3RvcmFnZWNvbnRhaW5lchiAgICAgOCXCQw",
-  "storage_container_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIdCxIQc3RvcmFnZWNvbnRhaW5lchiAgICAgOCXCQw",
+  "storage_container_key": "ahFkZXZ-c3MtZmVkZXJhdGlvbnIeCxIRc3RvcmFnZWNvbnRhaW5lcnMYgICAgIDArwsM",
   "slot_id": 1,
   "count": 10,
   "bound_key": "agByBAsSAAw",

@@ -87,7 +87,7 @@ func Register() {
 	ws.Route(ws.POST("").To(post).
 		Doc("Create a new resource").
 		Operation("postCharacter").
-		Param(ws.BodyParameter("buff.Resource", "representation of a resource").DataType("buff.Resource")).
+		Param(ws.BodyParameter("Character.Resource", "representation of a resource").DataType("Character.Resource")).
 		Reads(ResourceRequest{}).
 		Writes(ResourceResponse{}))
 
@@ -95,7 +95,7 @@ func Register() {
 		Doc("Update an existing resource").
 		Operation("putCharacter").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
-		Param(ws.BodyParameter("buff.Resource", "representation of a resource").DataType("buff.Resource")).
+		Param(ws.BodyParameter("Character.Resource", "representation of a resource").DataType("Character.Resource")).
 		Param(ws.HeaderParameter("If-Unmodified-Since", "Conditional modifier").DataType("RFC3339Nano Date")).
 		Reads(ResourceRequest{}))
 

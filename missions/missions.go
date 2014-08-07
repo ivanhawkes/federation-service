@@ -22,7 +22,7 @@ const (
 )
 
 const (
-	Kind     = "missions"
+	Kind     = "Missions"
 	RootPath = "/federation/" + Kind
 )
 
@@ -85,7 +85,7 @@ func Register() {
 	ws.Route(ws.POST("").To(post).
 		Doc("Create a new resource").
 		Operation("postMission").
-		Param(ws.BodyParameter("mission.Resource", "representation of a resource").DataType("mission.Resource")).
+		Param(ws.BodyParameter("Mission.Resource", "representation of a resource").DataType("Mission.Resource")).
 		Reads(ResourceRequest{}).
 		Writes(ResourceResponse{}))
 
@@ -93,7 +93,7 @@ func Register() {
 		Doc("Update an existing resource").
 		Operation("putMission").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
-		Param(ws.BodyParameter("mission.Resource", "representation of a resource").DataType("mission.Resource")).
+		Param(ws.BodyParameter("Mission.Resource", "representation of a resource").DataType("Mission.Resource")).
 		Param(ws.HeaderParameter("If-Unmodified-Since", "Conditional modifier").DataType("RFC3339Nano Date")).
 		Reads(ResourceRequest{}))
 

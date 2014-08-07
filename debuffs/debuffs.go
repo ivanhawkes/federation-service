@@ -88,7 +88,7 @@ func Register() {
 	ws.Route(ws.POST("").To(post).
 		Doc("Create a new resource").
 		Operation("postDebuff").
-		Param(ws.BodyParameter("debuff.Resource", "representation of a resource").DataType("debuff.Resource")).
+		Param(ws.BodyParameter("Debuff.Resource", "representation of a resource").DataType("Debuff.Resource")).
 		Reads(ResourceRequest{}).
 		Writes(ResourceResponse{}))
 
@@ -96,7 +96,7 @@ func Register() {
 		Doc("Update an existing resource").
 		Operation("putDebuff").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
-		Param(ws.BodyParameter("debuff.Resource", "representation of a resource").DataType("debuff.Resource")).
+		Param(ws.BodyParameter("Debuff.Resource", "representation of a resource").DataType("Debuff.Resource")).
 		Param(ws.HeaderParameter("If-Unmodified-Since", "Conditional modifier").DataType("RFC3339Nano Date")).
 		Reads(ResourceRequest{}))
 

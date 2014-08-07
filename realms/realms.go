@@ -79,39 +79,39 @@ func Register() {
 		Path(RootPath).
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML).
-		Doc("Buffs management.")
+		Doc("Realm management.")
 
 	ws.Route(ws.POST("").To(post).
 		Doc("Create a new resource").
-		Operation("postBuff").
-		Param(ws.BodyParameter("buff.Resource", "representation of a resource").DataType("buff.Resource")).
+		Operation("postRealm").
+		Param(ws.BodyParameter("Realm.Resource", "representation of a resource").DataType("Realm.Resource")).
 		Reads(ResourceRequest{}).
 		Writes(ResourceResponse{}))
 
 	ws.Route(ws.PUT("/{resource-id}").To(put).
 		Doc("Update an existing resource").
-		Operation("putBuff").
+		Operation("putRealm").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
-		Param(ws.BodyParameter("buff.Resource", "representation of a resource").DataType("buff.Resource")).
+		Param(ws.BodyParameter("Realm.Resource", "representation of a resource").DataType("Realm.Resource")).
 		Param(ws.HeaderParameter("If-Unmodified-Since", "Conditional modifier").DataType("RFC3339Nano Date")).
 		Reads(ResourceRequest{}))
 
 	ws.Route(ws.GET("/{resource-id}").To(get).
 		Doc("Read a resource").
-		Operation("getBuff").
+		Operation("getRealm").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
 		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")).
 		Writes(ResourceResponse{}))
 
 	ws.Route(ws.HEAD("/{resource-id}").To(head).
 		Doc("Returns the headers for a resource").
-		Operation("headBuff").
+		Operation("headRealm").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
 		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")))
 
 	ws.Route(ws.GET("/list").To(listAll).
 		Doc("Get a list of resources").
-		Operation("listBuff").
+		Operation("listRealm").
 		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")).
 		Writes(ResourceResponse{}))
 
