@@ -1,0 +1,2 @@
+#!/bin/sh
+gofmt -w . && git commit --all && git push -u origin --all

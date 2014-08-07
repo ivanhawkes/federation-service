@@ -1,4 +1,4 @@
-package ItemTemplates
+package itemtemplates
 
 import (
 	"time"

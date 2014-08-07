@@ -1,9 +1,9 @@
-package characterlocation
+package accounts
 
 import (
-	"accounts"
 	"appengine"
 	"appengine/datastore"
+	// "appengine/user"
 	"errors"
 	"github.com/emicklei/go-restful"
 	"net/http"
@@ -12,18 +12,30 @@ import (
 	"time"
 )
 
-// The various states for a federation resource.
+// Status values for records of this resource type.
 const (
 	StatusActivationPending = iota
 	StatusActive
 	StatusDeactivated
+	StatusPermanentlyBanned
 	StatusDeletionPending
 	StatusDeleted
 )
 
+// Access level control. Access is ranked from lowest to highest to enable simple arithmetic checks
+// when appropriate.
 const (
-	Kind     = "characterlocation"
-	RootPath = "/federation/" + Kind
+	AccessLevelGeneral = iota
+	AccessLevelFederationManager
+	AccessLevelCommunityManager
+	AccessLevelGameMaster
+	AccessLevelAdmin
+	AccessLevelSiteAdmin
+)
+
+const (
+	Kind     = "accounts"
+	RootPath = "/nexus8/" + Kind
 )
 
 func PreferredLink(k *datastore.Key) string {
@@ -33,44 +45,42 @@ func PreferredLink(k *datastore.Key) string {
 type Api struct {
 }
 
-// Status values for records of this resource type.
-// TODO: implement this.
-const (
-	StatusThisFederation = iota
-	StatusAnotherFederation
-)
-
-type Position struct {
-	X float32 `json:"x" xml:"x"`
-	Y float32 `json:"y" xml:"y"`
-	Z float32 `json:"z" xml:"z"`
-}
-
-type Direction struct {
-	Yaw   float32 `json:"yaw" xml:"yaw"`
-	Pitch float32 `json:"pitch" xml:"pitch"`
-	Roll  float32 `json:"roll" xml:"roll"`
-}
-
 type Resource struct {
-	CharacterKey datastore.Key `json:"character_key" xml:"character-key"`
-	RealmKey     datastore.Key `json:"realm_key" xml:"realm-key"`
-	ZoneKey      datastore.Key `json:"zone_key" xml:"zone-key"`
-	ShardKey     datastore.Key `json:"shard_key" xml:"shard-key"`
-	Position     Position      `json:"position" xml:"position"`
-	Direction    Direction     `json:"direction" xml:"direction"`
+	// Primary email address for this account holder.
+	Email string `json:"email" xml:"email"`
+
+	// First name for this account holder.
+	FirstName string `json:"first_name" xml:"first-name"`
+
+	// Last name for this account holder.
+	LastName string `json:"last_name" xml:"last-name"`
+
+	// Gravatar for this account holder.
+	AvatarUrl string `json:"avatar_url" xml:"avatar-url"`
+
+	// Access level control.
+	AccessLevel int `json:"access_level" xml:"access-level"`
+}
+
+type OpenIdInfo struct {
+	// Primary email address for this account holder.
+	OpenId string `json:"open_id" xml:"open-id"`
+
+	// First name for this account holder.
+	AuthDomain string `json:"auth_domain" xml:"auth-domain"`
+
+	// Last name for this account holder.
+	FederatedIdentity string `json:"federated_identity" xml:"federated-identity"`
+
+	// Gravatar for this account holder.
+	FederatedProvider string `json:"federated_provider" xml:"federated-provider"`
 }
 
 type ResourceMeta struct {
 	Api
 	resource.Meta
 	Resource
-}
-
-type ResourceKey struct {
-	Api
-	Key datastore.Key `datastore:"-" json:"key" xml:"key"`
-	Resource
+	OpenIdInfo
 }
 
 type ResourceRequest struct {
@@ -79,19 +89,10 @@ type ResourceRequest struct {
 }
 
 type ResourceResponse struct {
-	ResourceMeta
-}
-
-type ListResource struct {
-	Entry []Resource `json:"entry" xml:"entry"`
-}
-
-type ListResourceKey struct {
-	Entry []ResourceKey `json:"entry" xml:"entry"`
-}
-
-type ListResourceMeta struct {
-	Entry []ResourceMeta `json:"entry" xml:"entry"`
+	Api
+	resource.Meta
+	Resource
+	OpenIdInfo
 }
 
 // Register the routes we require for this resource type.
@@ -103,41 +104,28 @@ func Register() {
 		Path(RootPath).
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML).
-		Doc("Buffs management.")
-
-	ws.Route(ws.POST("").To(post).
-		Doc("Create a new resource").
-		Operation("postBuff").
-		Param(ws.BodyParameter("buff.Resource", "representation of a resource").DataType("buff.Resource")).
-		Reads(ResourceRequest{}).
-		Writes(ResourceResponse{}))
+		Doc("User account management.")
 
 	ws.Route(ws.PUT("/{resource-id}").To(put).
 		Doc("Update an existing resource").
-		Operation("putBuff").
+		Operation("putAccount").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
-		Param(ws.BodyParameter("buff.Resource", "representation of a resource").DataType("buff.Resource")).
+		Param(ws.BodyParameter("accounts.Resource", "representation of a resource").DataType("accounts.Resource")).
 		Param(ws.HeaderParameter("If-Unmodified-Since", "Conditional modifier").DataType("RFC3339Nano Date")).
 		Reads(ResourceRequest{}))
 
 	ws.Route(ws.GET("/{resource-id}").To(get).
 		Doc("Read a resource").
-		Operation("getBuff").
+		Operation("getAccounts").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
 		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")).
 		Writes(ResourceResponse{}))
 
 	ws.Route(ws.HEAD("/{resource-id}").To(head).
 		Doc("Returns the headers for a resource").
-		Operation("headBuff").
+		Operation("headAccount").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
 		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")))
-
-	ws.Route(ws.GET("/list").To(listAll).
-		Doc("Get a list of resources").
-		Operation("listBuff").
-		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")).
-		Writes(ResourceResponse{}))
 
 	restful.Add(ws)
 }
@@ -161,66 +149,62 @@ func getKey(r *restful.Request, w *restful.Response) (*datastore.Key, error) {
 	return k, nil
 }
 
-// Create a new resource.
-//
-func post(r *restful.Request, w *restful.Response) {
-	c := appengine.NewContext(r.Request)
+// Tests to see if the current user has an account with access greater than or equal to the accessLevel requested.
+func AccessLevelGE(r *restful.Request, w *restful.Response, accessLevel int) error {
+	// c := appengine.NewContext(r.Request)
 
-	// Auth check.
-	if err := accounts.AccessLevelGE(r, w, accounts.AccessLevelAdmin); err != nil {
-		return
-	}
+	// var accs []ResourceMeta
+	// q := datastore.NewQuery(Kind).
+	// 	Filter("OpenId =", user.Current(c).ID).
+	// 	Filter("AccessLevel >=", accessLevel).
+	// 	Limit(1).
+	// 	KeysOnly()
 
-	// Marshall the entity from the request into a struct.
-	res := new(ResourceMeta)
-	err := r.ReadEntity(res)
-	if err != nil {
-		resource.WriteError(w, resource.NewError(http.StatusNotAcceptable, "/html/error/statusnotacceptable", err.Error()))
-		return
-	}
+	// if keys, err := q.GetAll(c, accs); err != nil {
+	// 	resource.WriteError(w, resource.NewError(http.StatusInternalServerError, "/html/error/statusinternalservererror", err.Error()))
+	// 	return err
+	// } else {
 
-	// Set the meta data for the resource.
-	res.LastModified = time.Now()
-	res.Status = StatusActive
-	res.Revision = 1
+	// 	if len(keys) == 0 {
+	// 		// No matching account found.
+	// 		resource.WriteError(w, resource.NewError(http.StatusForbidden, "/html/error/statusforbidden", "User account does not appear to have the required permissions."))
+	// 		return errors.New("User account does not appear to have the required permissions.")
+	// 	}
+	// }
 
-	// TODO: The OwnerKey must be set at this point!
+	return nil
+}
 
-	// Store the resource.
-	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, Kind, nil), res)
-	if err != nil {
-		resource.WriteError(w, resource.NewError(http.StatusInternalServerError, "/html/error/statusinternalservererror", err.Error()))
-		return
-	}
+// Tests to see if the current user has an account with the requested accessLevel only.
+func AccessLevelEQ(r *restful.Request, w *restful.Response, accessLevel int) error {
+	// c := appengine.NewContext(r.Request)
 
-	// The resource Key.
-	res.Key = *k
+	// var accs []ResourceMeta
+	// q := datastore.NewQuery(Kind).
+	// 	Filter("OpenId =", user.Current(c).ID).
+	// 	Filter("AccessLevel =", accessLevel).
+	// 	Limit(1).
+	// 	KeysOnly()
 
-	// Let them know the location of the newly created resource.
-	w.AddHeader("Location", PreferredLink(k))
+	// if keys, err := q.GetAll(c, accs); err != nil {
+	// 	resource.WriteError(w, resource.NewError(http.StatusInternalServerError, "/html/error/statusinternalservererror", err.Error()))
+	// 	return err
+	// } else {
 
-	// Provide a link for ease of API usage.
-	res.Link.Rel = "self"
-	res.Link.Href = PreferredLink(k)
+	// 	if len(keys) == 0 {
+	// 		// No matching account found.
+	// 		resource.WriteError(w, resource.NewError(http.StatusForbidden, "/html/error/statusforbidden", "User account does not appear to have the required permissions."))
+	// 		return errors.New("User account does not appear to have the required permissions.")
+	// 	}
+	// }
 
-	// Set the headers.
-	w.WriteHeader(http.StatusCreated)
-	w.AddHeader(restful.HEADER_LastModified, res.LastModified.Format(time.RFC3339Nano))
-	w.AddHeader("ETag", strconv.Itoa(res.Revision))
-
-	// Output the response body.
-	w.WriteEntity(res)
+	return nil
 }
 
 // Update the resource.
 //
 func put(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
-
-	// Auth check.
-	if err := accounts.AccessLevelGE(r, w, accounts.AccessLevelAdmin); err != nil {
-		return
-	}
 
 	// Grab the key and validate it.
 	if k, err := getKey(r, w); err != nil {
@@ -268,6 +252,9 @@ func put(r *restful.Request, w *restful.Response) {
 		res.LastModified = time.Now()
 		res.Revision = old.Revision + 1
 
+		// Fill in any old values not found in the current request.
+		res.OpenId = old.OpenId
+
 		// Attempt to overwrite the old entity.
 		_, err = datastore.Put(c, k, res)
 		if err != nil {
@@ -285,7 +272,7 @@ func put(r *restful.Request, w *restful.Response) {
 	}
 }
 
-// Read a resource
+/// Read a resource
 //
 func get(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
@@ -376,48 +363,4 @@ func head(r *restful.Request, w *restful.Response) {
 		w.WriteHeader(http.StatusNoContent)
 		w.WriteEntity(nil)
 	}
-}
-
-// Read a resource
-//
-func listAll(r *restful.Request, w *restful.Response) {
-	c := appengine.NewContext(r.Request)
-
-	var result ListResourceKey
-	var q *datastore.Query
-
-	// Check if they want to limit the query using a modified since date.
-	if ifModifiedSince := r.HeaderParameter("If-Modified-Since"); ifModifiedSince == "" {
-		q = datastore.NewQuery(Kind).
-			Project("Category", "Subcategory", "Description").
-			Filter("Status =", StatusActive)
-	} else {
-		if t, err := time.Parse(time.RFC3339Nano, ifModifiedSince); err != nil {
-			w.AddHeader("Content-Type", "text/plain")
-			w.WriteErrorString(http.StatusNotAcceptable, err.Error())
-			return
-		} else {
-			q = datastore.NewQuery(Kind).
-				Project("Category", "Subcategory", "Description").
-				Filter("Status =", StatusActive).
-				Filter("LastModified >", t)
-		}
-	}
-
-	if keys, err := q.GetAll(c, &result.Entry); err != nil {
-		w.AddHeader("Content-Type", "text/plain")
-		w.WriteErrorString(http.StatusInternalServerError, err.Error())
-		return
-	} else {
-		for i, k := range keys {
-			// TODO: why does XML not emit the key correctly (JSON does)?
-			result.Entry[i].Key = *k
-		}
-	}
-
-	// Cache Control: By allowing a short cache time here we can reduce database calls and cost.
-	//	w.AddHeader("Cache-Control", "max-age=900,must-revalidate")
-	//	w.AddHeader(restful.HEADER_LastModified, time.Now().Format(time.RFC3339Nano))
-
-	w.WriteEntity(result)
 }

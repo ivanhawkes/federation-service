@@ -1,8 +1,8 @@
-package Skills
+package skills
 
-import (
-	"time"
-)
+// import (
+// 	"time"
+// )
 
 //
 // Combat skills.
@@ -170,7 +170,7 @@ type Flee struct {
 }
 
 // Straight up heal given in HPS.
-type Damage struct {
+type Heal struct {
 	HPS float32
 }
 

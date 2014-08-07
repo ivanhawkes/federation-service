@@ -1,8 +1,8 @@
-package Debuffs
+package debuffs
 
-import (
-	"time"
-)
+// import (
+// 	"time"
+// )
 
 // TODO: Implement a cost system...resource points, currency, XP?, skill point?
 

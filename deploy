@@ -1,0 +1,6 @@
+#!/bin/sh
+goapp deploy -oauth app.yaml
+
+# Update indexes...when does this need to run? Each time?
+#appcfg.py update_indexes api
+#appcfg.py update_indexes nexus8

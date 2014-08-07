@@ -1,4 +1,4 @@
-package characterlocation
+package storageitems
 
 import (
 	"accounts"
@@ -22,7 +22,7 @@ const (
 )
 
 const (
-	Kind     = "characterlocation"
+	Kind     = "storageitems"
 	RootPath = "/federation/" + Kind
 )
 
@@ -33,32 +33,30 @@ func PreferredLink(k *datastore.Key) string {
 type Api struct {
 }
 
-// Status values for records of this resource type.
-// TODO: implement this.
-const (
-	StatusThisFederation = iota
-	StatusAnotherFederation
-)
-
-type Position struct {
-	X float32 `json:"x" xml:"x"`
-	Y float32 `json:"y" xml:"y"`
-	Z float32 `json:"z" xml:"z"`
-}
-
-type Direction struct {
-	Yaw   float32 `json:"yaw" xml:"yaw"`
-	Pitch float32 `json:"pitch" xml:"pitch"`
-	Roll  float32 `json:"roll" xml:"roll"`
+type Manufacture struct {
+	RealmID int16     `json:"realm_id" xml:"realm-id"`
+	ShardID int16     `json:"shard_id" xml:"shard-id"`
+	Created time.Time `json:"created" xml:"created"`
 }
 
 type Resource struct {
-	CharacterKey datastore.Key `json:"character_key" xml:"character-key"`
-	RealmKey     datastore.Key `json:"realm_key" xml:"realm-key"`
-	ZoneKey      datastore.Key `json:"zone_key" xml:"zone-key"`
-	ShardKey     datastore.Key `json:"shard_key" xml:"shard-key"`
-	Position     Position      `json:"position" xml:"position"`
-	Direction    Direction     `json:"direction" xml:"direction"`
+	// The owner key is a key belonging to one of these kinds - Character, Faction, Profile, Account
+	OwnerKey datastore.Key `json:"owner_key" xml:"owner-key"`
+
+	// The storage container in which this item is current stored.
+	StorageContainer datastore.Key `json:"storage_container_key" xml:"storage-container-key"`
+
+	// This needs to be unique. Make sure to update it as required when moving from one container to another.
+	SlotID int32 `json:"slot_id" xml:"slot-id"`
+
+	// A count of how many of the given item are stored in this slot.
+	Count int32 `json:"count" xml:"count"`
+
+	// If the item is bound, then this key will belong to one of these kinds - Character, Faction, Profile, Account
+	BoundKey datastore.Key `json:"bound_key" xml:"bound-key"`
+
+	// Each item should carry a little information about it's manufacture.
+	Manufacture Manufacture `json:"manufacture" xml:"manufacture"`
 }
 
 type ResourceMeta struct {
@@ -103,39 +101,39 @@ func Register() {
 		Path(RootPath).
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
 		Produces(restful.MIME_JSON, restful.MIME_XML).
-		Doc("Buffs management.")
+		Doc("Genre management.")
 
 	ws.Route(ws.POST("").To(post).
 		Doc("Create a new resource").
-		Operation("postBuff").
-		Param(ws.BodyParameter("buff.Resource", "representation of a resource").DataType("buff.Resource")).
+		Operation("postGenre").
+		Param(ws.BodyParameter("genres.Resource", "representation of a resource").DataType("genres.Resource")).
 		Reads(ResourceRequest{}).
 		Writes(ResourceResponse{}))
 
 	ws.Route(ws.PUT("/{resource-id}").To(put).
 		Doc("Update an existing resource").
-		Operation("putBuff").
+		Operation("putGenre").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
-		Param(ws.BodyParameter("buff.Resource", "representation of a resource").DataType("buff.Resource")).
+		Param(ws.BodyParameter("genres.Resource", "representation of a resource").DataType("genres.Resource")).
 		Param(ws.HeaderParameter("If-Unmodified-Since", "Conditional modifier").DataType("RFC3339Nano Date")).
 		Reads(ResourceRequest{}))
 
 	ws.Route(ws.GET("/{resource-id}").To(get).
 		Doc("Read a resource").
-		Operation("getBuff").
+		Operation("getGenre").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
 		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")).
 		Writes(ResourceResponse{}))
 
 	ws.Route(ws.HEAD("/{resource-id}").To(head).
 		Doc("Returns the headers for a resource").
-		Operation("headBuff").
+		Operation("headGenre").
 		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
 		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")))
 
 	ws.Route(ws.GET("/list").To(listAll).
 		Doc("Get a list of resources").
-		Operation("listBuff").
+		Operation("listGenre").
 		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")).
 		Writes(ResourceResponse{}))
 

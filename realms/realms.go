@@ -1,20 +1,18 @@
 package realms
 
 import (
+	"accounts"
 	"appengine"
 	"appengine/datastore"
-	"appengine/user"
+	"errors"
 	"github.com/emicklei/go-restful"
-	"log"
 	"net/http"
+	"resource"
+	"strconv"
 	"time"
 )
 
-const (
-	rootPath = "/realms"
-)
-
-// The various states for a realm resource.
+// The various states for a federation resource.
 const (
 	StatusActivationPending = iota
 	StatusActive
@@ -23,258 +21,379 @@ const (
 	StatusDeleted
 )
 
-type RealmShallow struct {
-	Id   string `datastore:"-" json:"id" xml:"id"`
-	Link string `datastore:"-" json:"link" xml:"link"`
+const (
+	Kind     = "realms"
+	RootPath = "/federation/" + Kind
+)
+
+func PreferredLink(k *datastore.Key) string {
+	return RootPath + "/" + k.Encode()
+}
+
+type Api struct {
+}
+
+type Resource struct {
 	Name string `json:"name" xml:"name"`
 }
 
-type Realm struct {
-	RealmShallow
-	UserId       string    `datastore:"UserId" json:"-" xml:"-"`
-	LastModified time.Time `json:"-" xml:"-"`
-	Status       int       `json:"status" xml:"status"`
+type ResourceMeta struct {
+	Api
+	resource.Meta
+	Resource
 }
 
-type RealmApi struct {
-	Path string
+type ResourceKey struct {
+	Api
+	Key datastore.Key `datastore:"-" json:"key" xml:"key"`
+	Resource
 }
 
-func init() {
-	log.Printf("Realms: Register")
+type ResourceRequest struct {
+	Api
+	Resource
+}
+
+type ResourceResponse struct {
+	ResourceMeta
+}
+
+type ListResource struct {
+	Entry []Resource `json:"entry" xml:"entry"`
+}
+
+type ListResourceKey struct {
+	Entry []ResourceKey `json:"entry" xml:"entry"`
+}
+
+type ListResourceMeta struct {
+	Entry []ResourceMeta `json:"entry" xml:"entry"`
 }
 
 // Register the routes we require for this resource type.
 //
-func (api RealmApi) Register() {
+func Register() {
 	ws := new(restful.WebService)
 
 	ws.
-		Path(rootPath).
+		Path(RootPath).
 		Consumes(restful.MIME_JSON, restful.MIME_XML).
-		Produces(restful.MIME_JSON, restful.MIME_XML)
+		Produces(restful.MIME_JSON, restful.MIME_XML).
+		Doc("Buffs management.")
 
-	ws.Route(ws.POST("").To(api.create).
-		// Swagger documentation.
-		Doc("create a new realm").
-		Param(ws.BodyParameter("Realm", "representation of a realm").DataType("realms.Realm")).
-		Reads(Realm{}))
+	ws.Route(ws.POST("").To(post).
+		Doc("Create a new resource").
+		Operation("postBuff").
+		Param(ws.BodyParameter("buff.Resource", "representation of a resource").DataType("buff.Resource")).
+		Reads(ResourceRequest{}).
+		Writes(ResourceResponse{}))
 
-	ws.Route(ws.GET("/{realm-id}").To(api.read).
-		// Swagger documentation.
-		Doc("read a realm").
-		Param(ws.PathParameter("realm-id", "identifier for a realm").DataType("string")).
-		Writes(Realm{}))
+	ws.Route(ws.PUT("/{resource-id}").To(put).
+		Doc("Update an existing resource").
+		Operation("putBuff").
+		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
+		Param(ws.BodyParameter("buff.Resource", "representation of a resource").DataType("buff.Resource")).
+		Param(ws.HeaderParameter("If-Unmodified-Since", "Conditional modifier").DataType("RFC3339Nano Date")).
+		Reads(ResourceRequest{}))
 
-	ws.Route(ws.PUT("/{realm-id}").To(api.update).
-		// Swagger documentation.
-		Doc("update an existing realm").
-		Param(ws.PathParameter("realm-id", "identifier for a realm").DataType("string")).
-		Param(ws.BodyParameter("Realm", "representation of a realm").DataType("realms.Realm")).
-		Reads(Realm{}))
+	ws.Route(ws.GET("/{resource-id}").To(get).
+		Doc("Read a resource").
+		Operation("getBuff").
+		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
+		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")).
+		Writes(ResourceResponse{}))
 
-	ws.Route(ws.DELETE("/{realm-id}").To(api.delete).
-		// Swagger documentation.
-		Doc("delete a realm").
-		Param(ws.PathParameter("realm-id", "identifier for a realm").DataType("string")))
+	ws.Route(ws.HEAD("/{resource-id}").To(head).
+		Doc("Returns the headers for a resource").
+		Operation("headBuff").
+		Param(ws.PathParameter("resource-id", "key for an existing resource").DataType("string")).
+		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")))
+
+	ws.Route(ws.GET("/list").To(listAll).
+		Doc("Get a list of resources").
+		Operation("listBuff").
+		Param(ws.HeaderParameter("If-Modified-Since", "Optional conditional modifier").DataType("RFC3339Nano Date")).
+		Writes(ResourceResponse{}))
 
 	restful.Add(ws)
 }
 
-// Create a new resource.
+// Attempts to create a valid key for a resource.
 //
-func (api *RealmApi) create(r *restful.Request, w *restful.Response) {
-	c := appengine.NewContext(r.Request)
-
-	// Marshall the entity from the request into a struct.
-	realm := new(Realm)
-	err := r.ReadEntity(&realm)
+func getKey(r *restful.Request, w *restful.Response) (*datastore.Key, error) {
+	// Decode the request parameter to determine the key for the entity.
+	k, err := datastore.DecodeKey(r.PathParameter("resource-id"))
 	if err != nil {
-		w.WriteError(http.StatusNotAcceptable, err)
-		return
+		resource.WriteError(w, resource.NewError(http.StatusBadRequest, "/html/error/invalidkey", "The key is not valid."))
+		return nil, err
 	}
 
-	// Set some fields that need special handling.
-	realm.LastModified = time.Now()
-	realm.Status = StatusActive
-
-	// The resource belongs to this realm.
-	realm.UserId = user.Current(c).ID
-
-	// TODO: Should be ancestor to a federation.
-	// Set a user as our ancestor...this is done by querying for the key for the current user.
-	/*	var ancestor *datastore.Key
-		q := datastore.NewQuery("users").
-			Filter("UserId =", user.Current(c).ID).
-			KeysOnly()
-		if keys, err := q.GetAll(c, nil); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		} else {
-			if keys == nil {
-				http.Error(w, "There is no user resource for this login account", http.StatusNotAcceptable)
-				return
-			}
-			ancestor = keys[0]
-		}*/
-
-	// Store the realm.
-	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, "realms", nil /*ancestor*/), realm)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	// Check for shenanigans with the key.
+	if k.Kind() != Kind {
+		resource.WriteError(w, resource.NewError(http.StatusBadRequest, "/html/error/invalidkeymalicious", "The key is not valid for this type of resource."))
+		return nil, errors.New("The key is not valid for this type of resource.")
 	}
 
-	// The resource Id.
-	realm.Id = k.Encode()
-
-	// Let them know the location of the newly created resource.
-	// TODO: Use a safe Url path append function.
-	w.AddHeader("Location", rootPath+"/"+k.Encode())
-
-	// Provide a link for ease of API usage.
-	// TODO: This should be a fully qualified path.
-	realm.Link = rootPath + "/" + k.Encode()
-
-	// Return the resultant entity.
-	w.WriteHeader(http.StatusCreated)
-	w.WriteEntity(realm)
+	return k, nil
 }
 
-// Read the resource.
+// Create a new resource.
 //
-func (api RealmApi) read(r *restful.Request, w *restful.Response) {
+func post(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
-	// Decode the request parameter to determine the key for the entity.
-	k, err := datastore.DecodeKey(r.PathParameter("realm-id"))
+	// Auth check.
+	if err := accounts.AccessLevelGE(r, w, accounts.AccessLevelAdmin); err != nil {
+		return
+	}
+
+	// Marshall the entity from the request into a struct.
+	res := new(ResourceMeta)
+	err := r.ReadEntity(res)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		resource.WriteError(w, resource.NewError(http.StatusNotAcceptable, "/html/error/statusnotacceptable", err.Error()))
 		return
 	}
 
-	// Retrieve the entity from the datastore.
-	realm := Realm{}
-	if err := datastore.Get(c, k, &realm); err != nil {
-		if err.Error() == "datastore: no such entity" {
-			http.Error(w, err.Error(), http.StatusNotFound)
-		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+	// Set the meta data for the resource.
+	res.LastModified = time.Now()
+	res.Status = StatusActive
+	res.Revision = 1
+
+	// TODO: The OwnerKey must be set at this point!
+
+	// Store the resource.
+	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, Kind, nil), res)
+	if err != nil {
+		resource.WriteError(w, resource.NewError(http.StatusInternalServerError, "/html/error/statusinternalservererror", err.Error()))
 		return
 	}
 
-	// Check we own the resource before allowing them to view it.
-	// Optionally, return a 404 instead to help prevent guessing ids.
-	// TODO: Allow admins access.
-	//if realm.UserId != user.Current(c).ID {
-	//	http.Error(w, "You do not have access to this resource", http.StatusForbidden)
-	//	return
-	//}
+	// The resource Key.
+	res.Key = *k
 
-	// Set their Id.
-	realm.Id = k.Encode()
+	// Let them know the location of the newly created resource.
+	w.AddHeader("Location", PreferredLink(k))
 
 	// Provide a link for ease of API usage.
-	// TODO: This should be a fully qualified path.
-	realm.Link = rootPath + "/" + k.Encode()
+	res.Link.Rel = "self"
+	res.Link.Href = PreferredLink(k)
 
-	w.WriteEntity(realm)
+	// Set the headers.
+	w.WriteHeader(http.StatusCreated)
+	w.AddHeader(restful.HEADER_LastModified, res.LastModified.Format(time.RFC3339Nano))
+	w.AddHeader("ETag", strconv.Itoa(res.Revision))
+
+	// Output the response body.
+	w.WriteEntity(res)
 }
 
 // Update the resource.
 //
-func (api *RealmApi) update(r *restful.Request, w *restful.Response) {
+func put(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
-	// Decode the request parameter to determine the key for the entity.
-	k, err := datastore.DecodeKey(r.PathParameter("realm-id"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	// Auth check.
+	if err := accounts.AccessLevelGE(r, w, accounts.AccessLevelAdmin); err != nil {
 		return
 	}
 
-	// Marshall the entity from the request into a struct.
-	realm := new(Realm)
-	err = r.ReadEntity(&realm)
-	if err != nil {
-		w.WriteError(http.StatusNotAcceptable, err)
+	// Grab the key and validate it.
+	if k, err := getKey(r, w); err != nil {
 		return
-	}
+	} else {
 
-	// Retrieve the old entity from the datastore.
-	old := Realm{}
-	if err := datastore.Get(c, k, &old); err != nil {
-		if err.Error() == "datastore: no such entity" {
-			http.Error(w, err.Error(), http.StatusNotFound)
-		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+		// Marshall the entity from the request into a struct.
+		res := new(ResourceResponse)
+		err = r.ReadEntity(res)
+		if err != nil {
+			resource.WriteError(w, resource.NewError(http.StatusNotAcceptable, "/html/error/statusnotacceptable", err.Error()))
+			return
 		}
-		return
+
+		// Retrieve the old entity from the datastore.
+		old := new(ResourceResponse)
+		if err := datastore.Get(c, k, old); err != nil {
+			if err.Error() == "datastore: no such entity" {
+				resource.WriteError(w, resource.NewError(http.StatusNotFound, "/html/error/statusnotfound", err.Error()))
+				return
+			} else {
+				resource.WriteError(w, resource.NewError(http.StatusInternalServerError, "/html/error/statusinternalservererror", err.Error()))
+				return
+			}
+			return
+		}
+
+		// Use conditional put - check LastModified before doing anything.
+		if ifUnmodifiedSince := r.HeaderParameter("If-Unmodified-Since"); ifUnmodifiedSince == "" {
+			resource.WriteError(w, resource.NewError(http.StatusForbidden, "/html/error/statusforbidden", "Unconditional updates are not supported. Please provide 'If-Unmodified-Since' headers."))
+			return
+		} else {
+			if t, err := time.Parse(time.RFC3339Nano, ifUnmodifiedSince); err != nil {
+				resource.WriteError(w, resource.NewError(http.StatusNotAcceptable, "/html/error/statusnotacceptable", err.Error()))
+				return
+			} else {
+				if t.Before(old.LastModified) {
+					resource.WriteError(w, resource.NewError(http.StatusPreconditionFailed, "/html/error/statuspreconditionfailed", "The resource has been modified recently. Refresh your copy and try again if updating is still desireable."))
+					return
+				}
+			}
+		}
+
+		// Keep track of the last modification date.
+		res.LastModified = time.Now()
+		res.Revision = old.Revision + 1
+
+		// Attempt to overwrite the old entity.
+		_, err = datastore.Put(c, k, res)
+		if err != nil {
+			resource.WriteError(w, resource.NewError(http.StatusInternalServerError, "/html/error/statusinternalservererror", err.Error()))
+			return
+		}
+
+		// Set the headers.
+		w.AddHeader(restful.HEADER_LastModified, res.LastModified.Format(time.RFC3339Nano))
+		w.AddHeader("ETag", strconv.Itoa(res.Revision))
+
+		// Let them know it succeeded.
+		w.WriteHeader(http.StatusNoContent)
+		w.WriteEntity(nil)
 	}
-
-	// Check we own the resource before allowing them to update it.
-	// Optionally, return a 404 instead to help prevent guessing ids.
-	// TODO: Allow admins access.
-	if old.UserId != user.Current(c).ID {
-		http.Error(w, "You do not have access to this resource", http.StatusForbidden)
-		return
-	}
-
-	// Since the whole entity is re-written, we need to assign any invariant fields again
-	// e.g. the owner of the entity.
-	realm.UserId = user.Current(c).ID
-
-	// Keep track of the last modification date.
-	realm.LastModified = time.Now()
-
-	// Attempt to overwrite the old entity.
-	_, err = datastore.Put(c, k, realm)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Let them know it succeeded.
-	w.WriteHeader(http.StatusNoContent)
 }
 
-// Delete the resource.
+// Read a resource
 //
-func (api *RealmApi) delete(r *restful.Request, w *restful.Response) {
+func get(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
-	// Decode the request parameter to determine the key for the entity.
-	k, err := datastore.DecodeKey(r.PathParameter("realm-id"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	// Grab the key and validate it.
+	if k, err := getKey(r, w); err != nil {
 		return
-	}
-
-	// Retrieve the old entity from the datastore.
-	old := Realm{}
-	if err := datastore.Get(c, k, &old); err != nil {
-		if err.Error() == "datastore: no such entity" {
-			http.Error(w, err.Error(), http.StatusNotFound)
-		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+	} else {
+		// Handle cases where they want to check if the resource has been modified since...
+		if ok, err := resource.IfModifiedSince(r, w, c, Kind, k); err != nil || ok != true {
+			return
 		}
+
+		// Retrieve the entity from the datastore.
+		res := new(ResourceResponse)
+		if err := datastore.Get(c, k, res); err != nil {
+			if err.Error() == "datastore: no such entity" {
+				resource.WriteError(w, resource.NewError(http.StatusNotFound, "/html/error/statusnotfound", err.Error()))
+				return
+			} else {
+				resource.WriteError(w, resource.NewError(http.StatusInternalServerError, "/html/error/statusinternalservererror", err.Error()))
+				return
+			}
+			return
+		}
+
+		// Set their Key.
+		res.Key = *k
+
+		// Provide a link for ease of API usage.
+		res.Link.Rel = "self"
+		res.Link.Href = PreferredLink(k)
+
+		// Set the headers.
+		w.AddHeader(restful.HEADER_LastModified, res.LastModified.Format(time.RFC3339Nano))
+		w.AddHeader("ETag", strconv.Itoa(res.Revision))
+
+		// Cache Control: By allowing a short cache time here we can reduce database calls and cost.
+		w.AddHeader("Cache-Control", "max-age=14400,must-revalidate")
+
+		// Output the response body.
+		w.WriteEntity(res)
+	}
+}
+
+// Returns the headers for a resource
+//
+func head(r *restful.Request, w *restful.Response) {
+	c := appengine.NewContext(r.Request)
+
+	// Grab the key and validate it.
+	if k, err := getKey(r, w); err != nil {
 		return
+	} else {
+		// Handle cases where they want to check if the resource has been modified since...
+		if ok, err := resource.IfModifiedSince(r, w, c, Kind, k); err != nil || ok != true {
+			return
+		}
+
+		// Retrieve the entity from the datastore.
+		res := new(ResourceResponse)
+		if err := datastore.Get(c, k, res); err != nil {
+			if err.Error() == "datastore: no such entity" {
+				resource.WriteError(w, resource.NewError(http.StatusNotFound, "/html/error/statusnotfound", err.Error()))
+				return
+			} else {
+				resource.WriteError(w, resource.NewError(http.StatusInternalServerError, "/html/error/statusinternalservererror", err.Error()))
+				return
+			}
+			return
+		}
+
+		// Set their Key.
+		res.Key = *k
+
+		// Provide a link for ease of API usage.
+		res.Link.Rel = "self"
+		res.Link.Href = PreferredLink(k)
+
+		// Set the headers.
+		w.AddHeader(restful.HEADER_LastModified, res.LastModified.Format(time.RFC3339Nano))
+		w.AddHeader("ETag", strconv.Itoa(res.Revision))
+
+		// Cache Control: By allowing a short cache time here we can reduce database calls and cost.
+		w.AddHeader("Cache-Control", "max-age=14400,must-revalidate")
+
+		// No response body required for this verb.
+		w.WriteHeader(http.StatusNoContent)
+		w.WriteEntity(nil)
+	}
+}
+
+// Read a resource
+//
+func listAll(r *restful.Request, w *restful.Response) {
+	c := appengine.NewContext(r.Request)
+
+	var result ListResourceKey
+	var q *datastore.Query
+
+	// Check if they want to limit the query using a modified since date.
+	if ifModifiedSince := r.HeaderParameter("If-Modified-Since"); ifModifiedSince == "" {
+		q = datastore.NewQuery(Kind).
+			Project("Category", "Subcategory", "Description").
+			Filter("Status =", StatusActive)
+	} else {
+		if t, err := time.Parse(time.RFC3339Nano, ifModifiedSince); err != nil {
+			w.AddHeader("Content-Type", "text/plain")
+			w.WriteErrorString(http.StatusNotAcceptable, err.Error())
+			return
+		} else {
+			q = datastore.NewQuery(Kind).
+				Project("Category", "Subcategory", "Description").
+				Filter("Status =", StatusActive).
+				Filter("LastModified >", t)
+		}
 	}
 
-	// Check we own the resource before allowing them to delete it.
-	// Optionally, return a 404 instead to help prevent guessing ids.
-	// TODO: Allow admins access.
-	if old.UserId != user.Current(c).ID {
-		http.Error(w, "You do not have access to this resource", http.StatusForbidden)
+	if keys, err := q.GetAll(c, &result.Entry); err != nil {
+		w.AddHeader("Content-Type", "text/plain")
+		w.WriteErrorString(http.StatusInternalServerError, err.Error())
 		return
+	} else {
+		for i, k := range keys {
+			// TODO: why does XML not emit the key correctly (JSON does)?
+			result.Entry[i].Key = *k
+		}
 	}
 
-	// Delete the entity.
-	if err := datastore.Delete(c, k); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	// Cache Control: By allowing a short cache time here we can reduce database calls and cost.
+	//	w.AddHeader("Cache-Control", "max-age=900,must-revalidate")
+	//	w.AddHeader(restful.HEADER_LastModified, time.Now().Format(time.RFC3339Nano))
 
-	// Success notification.
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteEntity(result)
 }
