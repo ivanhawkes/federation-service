@@ -29,6 +29,11 @@ indexes:
   - name: Description
   - name: Subcategory
 
+- kind: realms
+  properties:
+  - name: __key__
+  - name: LastModified
+
 - kind: storagecontainers
   properties:
   - name: __key__
