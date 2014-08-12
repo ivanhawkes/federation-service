@@ -34,8 +34,14 @@ type Api struct {
 }
 
 type Resource struct {
-	// Components that define this item.
-	Components []interface{}
+	// Name for this resource.
+	Name string `json:"name" xml:"name"`
+
+	// Components that define this resource.
+	Components []interface{} `json:"components" xml:"components"`
+
+	// Icon to display in the UI
+	Icon string `json:"icon" xml:"icon"`
 
 	// The current owner of this item. This could be a player, a faction, a realm / zone, even the system. This needs thought
 	// on how to implement it for all these cases.

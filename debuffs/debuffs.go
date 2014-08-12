@@ -34,11 +34,14 @@ type Api struct {
 }
 
 type Resource struct {
-	// Components that define this itemtype.
-	Components []interface{}
+	// Name for this resource.
+	Name string `json:"name" xml:"name"`
+
+	// Components that define this resource.
+	Components []interface{} `json:"components" xml:"components"`
 
 	// Icon to display in the UI
-	Icon string
+	Icon string `json:"icon" xml:"icon"`
 }
 
 type ResourceMeta struct {

@@ -12,8 +12,8 @@
 {"first_name": "IvanUpdated", "nick_name": "Socks", "last_name": "HawkesUpdated"}
 
 # Realms
-{"name" : "Cloud Shatter", "api" : "https://xxx.yyy.zzz"}
-{"name" : "Queensland", "api" : "https://xxx.yyy.zzz"}
+{"name" : "Cloudshatter", "home" : "http://xxx.yyy.zzz", "api" : "https://api.cloudshatter.com"}
+{"name" : "Guest", "home" : "http://xxx.yyy.zzz", "api" : "https://api.guest.cloudshatter.com"}
 
 # Zones
 {"name" : "Quantum Impact"}
@@ -250,4 +250,36 @@ ahFkZXZ-c3MtZmVkZXJhdGlvbnIdCxIQc3RvcmFnZWNvbnRhaW5lchiAgICAgOCXCQw
     "shard_id": 0,
     "created": "0001-01-01T00:00:00Z"
   }
+}
+
+
+# buffs
+
+{
+  "name": "Buff 01",
+  "icon": "Buff01.jpg"
+}
+
+
+REPONSE
+
+{
+  "last_modified": "2014-08-12T05:30:13.48532469Z",
+  "revision": 1,
+  "key": "agByBAsSAAw",
+  "status": 1,
+  "link": {
+    "rel": "",
+    "href": ""
+  },
+  "name": "Buff 01",
+  "components": [
+    {
+      "Amount": 20
+    },
+    {
+      "Amount": 100
+    }
+  ],
+  "icon": "Buff01.jpg"
 }

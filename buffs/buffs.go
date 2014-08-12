@@ -34,11 +34,14 @@ type Api struct {
 }
 
 type Resource struct {
-	// Components that define this Buff.
-	Components []interface{}
+	// Name for this resource.
+	Name string `json:"name" xml:"name"`
+
+	// Components that define this resource.
+	Components []interface{} `json:"components" xml:"components"`
 
 	// Icon to display in the UI
-	Icon string
+	Icon string `json:"icon" xml:"icon"`
 }
 
 type ResourceMeta struct {
@@ -144,7 +147,7 @@ func getKey(r *restful.Request, w *restful.Response) (*datastore.Key, error) {
 // Create a new resource.
 //
 func post(r *restful.Request, w *restful.Response) {
-	c := appengine.NewContext(r.Request)
+	//c := appengine.NewContext(r.Request)
 
 	// Auth check.
 	if err := accounts.AccessLevelGE(r, w, accounts.AccessLevelAdmin); err != nil {
@@ -166,27 +169,32 @@ func post(r *restful.Request, w *restful.Response) {
 
 	// TODO: The OwnerKey must be set at this point!
 
+	// HACK: adding some data to it.
+	b1 := DPS{20.0}
+	b2 := Qi{100.0}
+	res.Components = []interface{}{b1, b2}
+
 	// Store the resource.
-	k, err := datastore.Put(c, datastore.NewIncompleteKey(c, Kind, nil), res)
-	if err != nil {
-		resource.WriteError(w, resource.NewError(http.StatusInternalServerError, "/html/error/statusinternalservererror", err.Error()))
-		return
-	}
+	// k, err := datastore.Put(c, datastore.NewIncompleteKey(c, Kind, nil), res)
+	// if err != nil {
+	// 	resource.WriteError(w, resource.NewError(http.StatusInternalServerError, "/html/error/statusinternalservererror", err.Error()))
+	// 	return
+	// }
 
-	// The resource Key.
-	res.Key = *k
+	// // The resource Key.
+	// res.Key = *k
 
-	// Let them know the location of the newly created resource.
-	w.AddHeader("Location", PreferredLink(k))
+	// // Let them know the location of the newly created resource.
+	// w.AddHeader("Location", PreferredLink(k))
 
-	// Provide a link for ease of API usage.
-	res.Link.Rel = "self"
-	res.Link.Href = PreferredLink(k)
+	// // Provide a link for ease of API usage.
+	// res.Link.Rel = "self"
+	// res.Link.Href = PreferredLink(k)
 
-	// Set the headers.
-	w.WriteHeader(http.StatusCreated)
-	w.AddHeader(restful.HEADER_LastModified, res.LastModified.Format(time.RFC3339Nano))
-	w.AddHeader("ETag", strconv.Itoa(res.Revision))
+	// // Set the headers.
+	// w.WriteHeader(http.StatusCreated)
+	// w.AddHeader(restful.HEADER_LastModified, res.LastModified.Format(time.RFC3339Nano))
+	// w.AddHeader("ETag", strconv.Itoa(res.Revision))
 
 	// Output the response body.
 	w.WriteEntity(res)
