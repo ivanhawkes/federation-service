@@ -256,10 +256,22 @@ ahFkZXZ-c3MtZmVkZXJhdGlvbnIdCxIQc3RvcmFnZWNvbnRhaW5lchiAgICAgOCXCQw
 # buffs
 
 {
-  "name": "Buff 01",
-  "icon": "Buff01.jpg"
+    "name": "Buff 01",
+    "icon": "Buff01.jpg",
+    "components": [
+        {
+            "prototype": "damage",
+            "dps": "12.0"
+        },
+        {
+            "prototype": "dot",
+            "damage_type": "3",
+            "dps": "12.0",
+            "duration": "12.0",
+            "stack": "6"
+        }
+    ]
 }
-
 
 REPONSE
 
