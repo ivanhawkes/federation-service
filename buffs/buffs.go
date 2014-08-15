@@ -4,6 +4,7 @@ import (
 	"accounts"
 	"appengine"
 	"appengine/datastore"
+	"components"
 	"errors"
 	"github.com/emicklei/go-restful"
 	"net/http"
@@ -34,36 +35,36 @@ func PreferredLink(k *datastore.Key) string {
 type Api struct {
 }
 
-type ComponentMap map[string]string
+// type ComponentMap map[string]string
 
 func (r Resource) Load(c <-chan datastore.Property) error {
-	// for p := range c {
-	// 	if p.Multiple {
-	// 		value := reflect.ValueOf(r[p.Name])
-	// 		if value.Kind() != reflect.Slice {
-	// 			r[p.Name] = p.Value.(string)
-	// 		} /*else {
-	// 			r[p.Name] = append(r[p.Name].([]string), p.Value)
-	// 		}*/
-	// 	} else {
-	// 		r[p.Name] = p.Value.(string)
-	// 	}
-	// }
-	return nil
+	// 	// for p := range c {
+	// 	// 	if p.Multiple {
+	// 	// 		value := reflect.ValueOf(r[p.Name])
+	// 	// 		if value.Kind() != reflect.Slice {
+	// 	// 			r[p.Name] = p.Value.(string)
+	// 	// 		} /*else {
+	// 	// 			r[p.Name] = append(r[p.Name].([]string), p.Value)
+	// 	// 		}*/
+	// 	// 	} else {
+	// 	// 		r[p.Name] = p.Value.(string)
+	// 	// 	}
+	// 	// }
+	// 	return nil
 
-	// for p := range c {
-	// 	if p.Multiple {
-	// 		value := reflect.ValueOf(m[p.Name])
-	// 		if value.Kind() != reflect.Slice {
-	// 			m[p.Name] = p.Value.(string)
-	// 		} /*else {
-	// 			m[p.Name] = append(m[p.Name].([]string), p.Value)
-	// 		}*/
-	// 	} else {
-	// 		m[p.Name] = p.Value.(string)
-	// 	}
-	// }
-	// return nil
+	// 	// for p := range c {
+	// 	// 	if p.Multiple {
+	// 	// 		value := reflect.ValueOf(m[p.Name])
+	// 	// 		if value.Kind() != reflect.Slice {
+	// 	// 			m[p.Name] = p.Value.(string)
+	// 	// 		} /*else {
+	// 	// 			m[p.Name] = append(m[p.Name].([]string), p.Value)
+	// 	// 		}*/
+	// 	// 	} else {
+	// 	// 		m[p.Name] = p.Value.(string)
+	// 	// 	}
+	// 	// }
+	return nil
 }
 
 func (r Resource) Save(c chan<- datastore.Property) error {
@@ -78,11 +79,13 @@ func (r Resource) Save(c chan<- datastore.Property) error {
 		Value: r.Icon,
 	}
 
-	for k, v := range r.Components {
-		c <- datastore.Property{
-			Name:  "Component." + k,
-			Value: v,
-		}
+	c <- datastore.Property{
+		Name:  "TEST2",
+		Value: "test22222",
+	}
+
+	for _, v := range r.Components {
+		v.Save(c)
 	}
 
 	return nil
@@ -96,7 +99,7 @@ type Resource struct {
 	//	Components []interface{} `json:"components" xml:"components"`
 	//Components []map[string]string `datastore:",noindex" json:"components" xml:"components"`
 	//	Components ComponentMap `datastore:",noindex" json:"components" xml:"components"`
-	Components ComponentMap `datastore:",noindex" json:"components" xml:"components"`
+	Components []components.Component `datastore:-",noindex" json:"components" xml:"components"`
 
 	// Icon to display in the UI
 	Icon string `json:"icon" xml:"icon"`
