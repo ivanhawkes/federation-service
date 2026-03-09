@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/emicklei/go-restful"
+	restful "github.com/emicklei/go-restful/v3"
 	"google.golang.org/appengine/datastore"
 )
 

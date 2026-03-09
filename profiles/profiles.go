@@ -2,17 +2,17 @@ package profiles
 
 import (
 	"errors"
-	"federation-services/accounts"
-	"federation-services/resource"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/emicklei/go-restful"
+	"federation-services/accounts"
+	"federation-services/resource"
 
-	"google.golang.org/appengine/datastore"
+	restful "github.com/emicklei/go-restful/v3"
 
 	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
 )
 
 // The various states for a federation resource.

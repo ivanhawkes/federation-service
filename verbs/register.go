@@ -8,11 +8,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/emicklei/go-restful"
-
-	"google.golang.org/appengine/datastore"
+	restful "github.com/emicklei/go-restful/v3"
 
 	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
 )
 
 type RegisterResource struct {

@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/emicklei/go-restful"
+	restful "github.com/emicklei/go-restful/v3"
 	// "github.com/emicklei/go-restful/swagger"
 
 	"google.golang.org/appengine"
