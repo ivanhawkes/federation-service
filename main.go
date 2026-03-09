@@ -24,7 +24,6 @@ import (
 
 	"github.com/emicklei/go-restful"
 	// "github.com/emicklei/go-restful/swagger"
-	"github.com/emicklei/go-restful-openapi/v2"
 
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/user"
@@ -82,23 +81,23 @@ func init() {
 	// Register the verbs.
 	verbs.RegisterVerbRegister()
 
-	// Optionally, you can install the Swagger Service which provides a nice Web UI on your REST API
-	// You need to download the Swagger HTML5 assets and change the FilePath location in the config below.
-	// Open <your_app_id>.appspot.com/apidocs and enter
-	// http://<your_app_id>.appspot.com/apidocs.json in the api input field.
-	config := swagger.Config{
-		// You control what services are visible
-		WebServices:    restful.RegisteredWebServices(),
-		WebServicesUrl: gaeUrl(),
-		ApiPath:        "/apidocs.json",
+	// // Optionally, you can install the Swagger Service which provides a nice Web UI on your REST API
+	// // You need to download the Swagger HTML5 assets and change the FilePath location in the config below.
+	// // Open <your_app_id>.appspot.com/apidocs and enter
+	// // http://<your_app_id>.appspot.com/apidocs.json in the api input field.
+	// config := swagger.Config{
+	// 	// You control what services are visible
+	// 	WebServices:    restful.RegisteredWebServices(),
+	// 	WebServicesUrl: gaeUrl(),
+	// 	ApiPath:        "/apidocs.json",
 
-		// Optionally, specifiy where the UI is located
-		SwaggerPath: "/apidoc/",
+	// 	// Optionally, specifiy where the UI is located
+	// 	SwaggerPath: "/apidoc/",
 
-		// GAE support static content which is configured in your app.yaml.
-		// This example expect the swagger-ui in static/swagger so you should place it there :)
-		SwaggerFilePath: "static/swagger/"}
-	swagger.InstallSwaggerService(config)
+	// 	// GAE support static content which is configured in your app.yaml.
+	// 	// This example expect the swagger-ui in static/swagger so you should place it there :)
+	// 	SwaggerFilePath: "static/swagger/"}
+	// swagger.InstallSwaggerService(config)
 
 }
 
@@ -180,3 +179,5 @@ func myTestGet(r *restful.Request, w *restful.Response) {
 	// Footer.
 	fmt.Fprintf(w, "</body></html>")
 }
+
+func main() {}

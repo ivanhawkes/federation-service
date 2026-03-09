@@ -1,13 +1,12 @@
 package resource
 
 import (
+	"context"
 	"net/http"
 	"time"
 
 	"github.com/emicklei/go-restful"
 	"google.golang.org/appengine/datastore"
-
-	"google.golang.org/appengine"
 )
 
 type Link struct {
@@ -57,7 +56,7 @@ func NewError(httpStatus int, uri string, description string) *ResourceError {
 
 // Performs a check to see if the resource has been modified since a given datetime.
 // Return value indicates if you should keep processing after calling this routine.
-func IfModifiedSince(r *restful.Request, w *restful.Response, c appengine.Context, kind string, k *datastore.Key) (bool, error) {
+func IfModifiedSince(r *restful.Request, w *restful.Response, c context.Context, kind string, k *datastore.Key) (bool, error) {
 	// Check if they want to limit the query using a modified since date.
 	if ifModifiedSince := r.HeaderParameter("If-Modified-Since"); ifModifiedSince != "" {
 		if t, err := time.Parse(time.RFC3339Nano, ifModifiedSince); err != nil {
