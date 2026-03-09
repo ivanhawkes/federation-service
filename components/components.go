@@ -1,7 +1,7 @@
 package components
 
 import (
-	"appengine/datastore"
+	"google.golang.org/appengine/datastore"
 )
 
 type ComponentMap map[string]interface{}

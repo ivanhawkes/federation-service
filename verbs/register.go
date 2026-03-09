@@ -1,15 +1,18 @@
 package verbs
 
 import (
-	"accounts"
-	"appengine"
-	"appengine/datastore"
-	"github.com/emicklei/go-restful"
+	"federation-services/accounts"
+	"federation-services/resource"
 	"log"
 	"net/http"
-	"resource"
 	"strconv"
 	"time"
+
+	"github.com/emicklei/go-restful"
+
+	"google.golang.org/appengine/datastore"
+
+	"google.golang.org/appengine"
 )
 
 type RegisterResource struct {
@@ -29,7 +32,6 @@ func init() {
 }
 
 // Register the verb.
-//
 func RegisterVerbRegister() {
 	log.Printf("VERB: /register")
 
@@ -51,7 +53,6 @@ func RegisterVerbRegister() {
 }
 
 // Create a new resource.
-//
 func postRegister(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 

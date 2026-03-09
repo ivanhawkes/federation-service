@@ -1,7 +1,7 @@
 package missions
 
 import (
-	"appengine/datastore"
+	"google.golang.org/appengine/datastore"
 )
 
 type KillXofY struct {
@@ -122,16 +122,12 @@ type ProfessionCooking struct {
 	Weapon string
 }
 
-//
 // Lore
-//
 type LoreLearn struct {
 	Stuff string
 }
 
-//
 // Raid
-//
 type RaidCompletion struct {
 	ZoneId datastore.Key `json:"zone_id" xml:"zone-id"`
 }
@@ -140,9 +136,7 @@ type RaidBoss struct {
 	CharacterId datastore.Key `json:"character_id" xml:"character-id"`
 }
 
-//
 // Dungeon
-//
 type DungeonCompletion struct {
 	ZoneId datastore.Key `json:"zone_id" xml:"zone-id"`
 }
@@ -156,9 +150,7 @@ type DungeonLocation struct {
 	Location string
 }
 
-//
 // World boss
-//
 type WorldBoss struct {
 	CharacterId datastore.Key `json:"character_id" xml:"-id"`
 }

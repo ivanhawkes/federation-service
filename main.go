@@ -1,30 +1,33 @@
 package main
 
 import (
-	"accounts"
-	"appengine"
-	"appengine/user"
-	"buffs"
-	"characterappearances"
-	"characterlocations"
-	"characters"
-	"debuffs"
-	"factions"
+	"federation-services/accounts"
+	"federation-services/buffs"
+	"federation-services/characterappearances"
+	"federation-services/characterlocations"
+	"federation-services/characters"
+	"federation-services/debuffs"
+	"federation-services/factions"
+	"federation-services/items"
+	"federation-services/itemtemplates"
+	"federation-services/loottables"
+	"federation-services/missions"
+	"federation-services/profiles"
+	"federation-services/realms"
+	"federation-services/skills"
+	"federation-services/storagecontainers"
+	"federation-services/storageitems"
+	"federation-services/verbs"
+	"federation-services/zones"
 	"fmt"
-	"github.com/emicklei/go-restful"
-	"github.com/emicklei/go-restful/swagger"
-	"items"
-	"itemtemplates"
-	"loottables"
-	"missions"
 	"net/http"
-	"profiles"
-	"realms"
-	"skills"
-	"storagecontainers"
-	"storageitems"
-	"verbs"
-	"zones"
+
+	"github.com/emicklei/go-restful"
+	// "github.com/emicklei/go-restful/swagger"
+	"github.com/emicklei/go-restful-openapi/v2"
+
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/user"
 )
 
 func gaeUrl() string {
@@ -109,7 +112,6 @@ func registerLoginRequired() {
 }
 
 // Present a page for federated logins.
-//
 func loginRequired(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
@@ -151,7 +153,6 @@ func registerMyTest() {
 }
 
 // Test page.
-//
 func myTestGet(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 	// Header.

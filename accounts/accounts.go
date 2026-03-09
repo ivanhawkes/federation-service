@@ -1,15 +1,17 @@
 package accounts
 
 import (
-	"appengine"
-	"appengine/datastore"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
+
 	// "appengine/user"
 	"errors"
-	"github.com/emicklei/go-restful"
+	"federation-services/resource"
 	"net/http"
-	"resource"
 	"strconv"
 	"time"
+
+	"github.com/emicklei/go-restful"
 )
 
 // Status values for records of this resource type.
@@ -96,7 +98,6 @@ type ResourceResponse struct {
 }
 
 // Register the routes we require for this resource type.
-//
 func Register() {
 	ws := new(restful.WebService)
 
@@ -131,7 +132,6 @@ func Register() {
 }
 
 // Attempts to create a valid key for a resource.
-//
 func getKey(r *restful.Request, w *restful.Response) (*datastore.Key, error) {
 	// Decode the request parameter to determine the key for the entity.
 	k, err := datastore.DecodeKey(r.PathParameter("resource-id"))
@@ -202,7 +202,6 @@ func AccessLevelEQ(r *restful.Request, w *restful.Response, accessLevel int) err
 }
 
 // Update the resource.
-//
 func put(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
@@ -272,8 +271,7 @@ func put(r *restful.Request, w *restful.Response) {
 	}
 }
 
-/// Read a resource
-//
+// / Read a resource
 func get(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
@@ -319,7 +317,6 @@ func get(r *restful.Request, w *restful.Response) {
 }
 
 // Returns the headers for a resource
-//
 func head(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 

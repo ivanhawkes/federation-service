@@ -1,7 +1,7 @@
 package missions
 
 import (
-	"appengine/datastore"
+	"google.golang.org/appengine/datastore"
 )
 
 type LocationZone struct {

@@ -1,7 +1,7 @@
 package missions
 
 import (
-	"appengine/datastore"
+	"google.golang.org/appengine/datastore"
 )
 
 // Gain XP to get new skill points. XP levels are flat, like in TSW. This is simply a way to evenly

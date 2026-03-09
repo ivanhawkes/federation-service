@@ -1,11 +1,13 @@
 package resource
 
 import (
-	"appengine"
-	"appengine/datastore"
-	"github.com/emicklei/go-restful"
 	"net/http"
 	"time"
+
+	"github.com/emicklei/go-restful"
+	"google.golang.org/appengine/datastore"
+
+	"google.golang.org/appengine"
 )
 
 type Link struct {

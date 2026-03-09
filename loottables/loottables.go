@@ -1,15 +1,18 @@
 package loottables
 
 import (
-	"accounts"
-	"appengine"
-	"appengine/datastore"
 	"errors"
-	"github.com/emicklei/go-restful"
+	"federation-services/accounts"
+	"federation-services/resource"
 	"net/http"
-	"resource"
 	"strconv"
 	"time"
+
+	"github.com/emicklei/go-restful"
+
+	"google.golang.org/appengine/datastore"
+
+	"google.golang.org/appengine"
 )
 
 // The various states for a federation resource.
@@ -79,7 +82,6 @@ type ListResourceMeta struct {
 }
 
 // Register the routes we require for this resource type.
-//
 func Register() {
 	ws := new(restful.WebService)
 
@@ -127,7 +129,6 @@ func Register() {
 }
 
 // Attempts to create a valid key for a resource.
-//
 func getKey(r *restful.Request, w *restful.Response) (*datastore.Key, error) {
 	// Decode the request parameter to determine the key for the entity.
 	k, err := datastore.DecodeKey(r.PathParameter("resource-id"))
@@ -146,7 +147,6 @@ func getKey(r *restful.Request, w *restful.Response) (*datastore.Key, error) {
 }
 
 // Create a new resource.
-//
 func post(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
@@ -197,7 +197,6 @@ func post(r *restful.Request, w *restful.Response) {
 }
 
 // Update the resource.
-//
 func put(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
@@ -270,7 +269,6 @@ func put(r *restful.Request, w *restful.Response) {
 }
 
 // Read a resource
-//
 func get(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
@@ -316,7 +314,6 @@ func get(r *restful.Request, w *restful.Response) {
 }
 
 // Returns the headers for a resource
-//
 func head(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 
@@ -363,7 +360,6 @@ func head(r *restful.Request, w *restful.Response) {
 }
 
 // Read a resource
-//
 func listAll(r *restful.Request, w *restful.Response) {
 	c := appengine.NewContext(r.Request)
 

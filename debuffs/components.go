@@ -1,7 +1,7 @@
 package debuffs
 
 import (
-	"appengine/datastore"
+	"google.golang.org/appengine/datastore"
 	// 	"time"
 )
 
